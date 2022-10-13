@@ -1,4 +1,17 @@
+// ==UserScript==
+// @name         fuck_qingjiao
+// @namespace    http://tampermonkey.net/
+// @version      0.1
+// @description  Fuck 青骄第二课堂 全自动完成所有课程+学分自动获取
+// @author       WindLeaf
+// @match        *://www.2-class.com/*
+// @grant        none
+// @require      http://cdn.staticfile.org/jquery/3.6.1/jquery.min.js
+// ==/UserScript==
+
 (function() {
+  'use strict';
+
   function isNone(anyObj) {
     return anyObj == undefined || anyObj == null;
   }
