@@ -6,6 +6,7 @@
 // @author       WindLeaf
 // @match        *://www.2-class.com/*
 // @grant        none
+// @license      GPL-3.0
 // @require      http://cdn.staticfile.org/jquery/3.6.1/jquery.min.js
 // ==/UserScript==
 
