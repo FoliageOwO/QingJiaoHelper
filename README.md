@@ -6,6 +6,10 @@
 
 让你在学校里高人一等 (bushi
 
+## 插件地址
+
+[Greasy Fork - fuck_qingjiao](https://greasyfork.org/zh-CN/scripts/452984-qingjiao)
+
 ## 食用方法
 
 1. 安装这个插件
