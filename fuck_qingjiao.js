@@ -196,10 +196,16 @@
       }
     });
 
-    // resources: 心理减压, 耕读学堂, 校园安全
+    // resources: 心理减压, 耕读学堂 [耕读, 电影, 音乐, 体育, 美术, 自然, 公开课], 校园安全
     let categorys = [
       { categoryName: 'public_good', pageNo: 1, pageSize: 100, reqtoken, tag: 'read' },
-      { categoryName: 'ma_yun_recommend', pageNo: 1, pageSize: 100, reqtoken, tag: 'labour' },
+      { categoryName: 'ma_yun_recommend', pageNo: 1, pageSize: 100, reqtoken, tag: 'labour' }, // the `ma_yun_recommend` has lots of sub-categorys
+      { categoryName: 'ma_yun_recommend', pageNo: 1, pageSize: 100, reqtoken, tag: 'movie' },
+      { categoryName: 'ma_yun_recommend', pageNo: 1, pageSize: 100, reqtoken, tag: 'music' },
+      { categoryName: 'ma_yun_recommend', pageNo: 1, pageSize: 100, reqtoken, tag: 'physicalEducation' },
+      { categoryName: 'ma_yun_recommend', pageNo: 1, pageSize: 100, reqtoken, tag: 'arts' },
+      { categoryName: 'ma_yun_recommend', pageNo: 1, pageSize: 100, reqtoken, tag: 'natural' },
+      { categoryName: 'ma_yun_recommend', pageNo: 1, pageSize: 100, reqtoken, tag: 'publicWelfareFoundation' },
       { categoryName: 'school_safe', pageNo: 1, pageSize: 100, reqtoken, tag: 'safeVolunteer' }
     ];
     for (let category of categorys) {
