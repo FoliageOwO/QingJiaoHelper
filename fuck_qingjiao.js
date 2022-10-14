@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         fuck_qingjiao
 // @namespace    http://tampermonkey.net/
-// @version      0.1
+// @version      0.2
 // @description  Fuck 青骄第二课堂 全自动完成所有课程+学分自动获取
 // @author       WindLeaf
 // @match        *://www.2-class.com/*
@@ -18,13 +18,13 @@
   }
 
   if (isNone($.ajax) || isNone($.isNumeric)) {
-    console.error('Cannot find jQuery function!')
+    console.error('无法找到脚本所需的 jQuery 函数!')
     return;
   }
 
   const error = err => {
     // sadly error occurred
-    console.error(`Error has occurred! Status code [${err.status}]`, err.responseText);
+    console.error(`在请求的时候发生了个错误, 错误代码 [${err.status}]`, err.responseText);
     return;
   }
 
@@ -51,22 +51,18 @@
         let testPaperList = data.testPaperList;
         if (!isNone(testPaperList)) {
           let answers = testPaperList.map(column => column.answer);
-          console.debug(data);
-          console.log(`Successfully get the data of course[${courseId}]: ${title}`);
-          console.log('Successfully get answers:', answers);
+          console.debug(`成功获取到课程 [${courseId}] 的数据: ${title}`);
+          console.debug('成功获取到答案', answers);
           commit(answers);
         } else {
           startCourse(courseId);
         }
       },
-      error: err => {
-        console.error('Error has occurred!', err);
-        return;
-      }
+      error
     })
 
     function commit(answers) {
-      console.log('Committing...')
+      console.debug(`正在提交课程 [${courseId}] 答案...`)
       let data = {
         courseId,
         examCommitReqDataList: answers.map((answer, index) => {
@@ -77,6 +73,7 @@
         }),
         reqtoken
       }
+      let committed = 0;
 
       $.ajax({
         method: 'POST',
@@ -87,13 +84,26 @@
         success: resp => {
           let flag = resp.data;
           if (flag) {
-            console.log(`Successfully committed course [${courseId}]!`);
+            console.debug(`成功提交课程 [${courseId}] 答案!`);
+            committed++;
           } else {
-            console.error(resp);
+            console.error(`无法提交课程 [${courseId}] 答案!`, resp);
           }
         },
         error
-      })
+      });
+
+      let beforeCommitted = committed;
+      let checkCommitUpdate = setInterval(() => {
+        if (committed != 0) {
+          if (committed == beforeCommitted) {
+            console.log(`成功提交了 ${committed} 个课程!`);
+            clearInterval(checkCommitUpdate);
+          } else {
+            beforeCommitted = committed;
+          }
+        }
+      }, 500);
     }
   }
 
@@ -103,7 +113,7 @@
       url: 'https://www.2-class.com/api/course/getHomepageGrade',
       success: resp1 => {
         let grades = resp1.data.map(it => it.value);
-        console.debug('grades', grades);
+        console.debug('获取年级列表', grades);
         for (let grade of grades) {
           // get courses
           $.ajax({
@@ -113,18 +123,18 @@
               let courses = resp2.data.list
                 .filter(k => !k.isFinish && k.title != '期末考试') // skip finished and final exam
                 .map(j => j.courseId); // courseId => list
-              console.debug('courses', courses);
+              console.debug(`年级 [${grade}] 可用的课程 (没学过的):`, courses);
               for (let courseId of courses) {
                 // [skip final exam]
                 if (courseId == 'finalExam') {
-                  console.debug('Skipped final exam.');
+                  console.debug('已跳过期末考试!');
                   return;
                 }
                 // start course
                 if (!isNone(courseId)) {
                   startCourse(courseId);
                 } else {
-                  console.error('courseId not found, skipped.');
+                  console.warn('无法找到 `courseId`, 已跳过!');
                 }
               }
             },
@@ -148,7 +158,7 @@
 
     function resolveGrades() {
       clearInterval(timer);
-      console.debug('grades', gradesTabElements);
+      console.debug('获取年级列表 (自学)', gradesTabElements);
       for (let element of gradesTabElements) {
         let grade = element.innerText;
         $.ajax({
@@ -158,18 +168,18 @@
             let courses = resp.data.list
               .filter(k => !k.isFinish && k.title != '期末考试') // skip finished and final exam
               .map(j => j.courseId); // courseId => list
-            console.debug('courses', courses);
+              console.debug(`年级 [${grade}] 可用的课程 (自学) (没学过的):`, courses);
             for (let courseId of courses) {
               // [skip final exam]
               if (courseId == 'finalExam') {
-                console.debug('Skipped final exam.');
+                console.debug('已跳过期末考试!'); // seems that selfCourses don't have final exam
                 return;
               }
               // start course
               if (!isNone(courseId)) {
                 startCourse(courseId);
               } else {
-                console.error('courseId not found, skipped.');
+                console.warn('无法找到 `courseId`, 已跳过!');
               }
             }
           },
@@ -189,9 +199,9 @@
         let status = data.status;
         let num = data.medalNum;
         if (status) {
-          console.log(`Successfully add medal [${num}]!`);
+          console.debug(`成功领取禁毒徽章 [${num}]!`);
         } else {
-          console.error(`Cannot add medal, skipped!`)
+          console.warn(`无法领取徽章 (可能已领取过), 已跳过!`)
         }
       }
     });
@@ -208,6 +218,9 @@
       { categoryName: 'ma_yun_recommend', pageNo: 1, pageSize: 100, reqtoken, tag: 'publicWelfareFoundation' },
       { categoryName: 'school_safe', pageNo: 1, pageSize: 100, reqtoken, tag: 'safeVolunteer' }
     ];
+    let synced = 0;
+    let liked = 0;
+
     for (let category of categorys) {
       $.ajax({
         method: 'POST',
@@ -218,9 +231,10 @@
         success: resourcesResp => {
           let resources = resourcesResp.data.list.map(it => {
             return {
-              title: it.briefTitle, resourceId: it.resourceId
+              title: it.description, resourceId: it.resourceId
             };
           });
+          console.debug(`获取分类 ${category.categoryName} 的资源`, resources);
           for (let resource of resources) {
             let resourceId = resource.resourceId;
             // sync resource
@@ -235,9 +249,10 @@
               success: resourcePostResp => {
                 let result = resourcePostResp.data.result;
                 if (result) {
-                  console.log(`Successfully synced resource [${resourceId}]: ${resource.title}!`);
+                  console.debug(`成功同步资源 [${resourceId}]: ${resource.title}!`);
+                  synced++;
                 } else {
-                  console.error(`Sync resource [${resourceId}] error, skipped!`);
+                  console.warn(`同步资源 [${resourceId}] 失败, 已跳过!`);
                 }
                 return;
               }
@@ -257,9 +272,10 @@
                 let flag = resourceLikeResp.success;
                 let already_like = !$.isNumeric(count) && count.errorCode === 'ALREADY_like';
                 if ($.isNumeric(count) && flag) {
-                  console.log(`Successfully liked resource [${resourceId}]: ${count}!`);
+                  console.debug(`成功点赞资源 [${resourceId}]: ${count}!`);
+                  liked++;
                 } else {
-                  console.error(`Cannot like ${resourceId}, [already_like=${already_like}], skipped!`);
+                  console.warn(`无法点赞资源 [${resourceId}], 是否已点赞: ${already_like}, 已跳过!`);
                 }
               },
               error
@@ -269,5 +285,17 @@
         error
       });
     }
+
+    let beforeSynced = synced;
+    let checkSuccess = setInterval(() => {
+      if (synced != 0) {
+        if (synced == beforeSynced) {
+          console.log(`成功同步 ${synced} 个资源, 点赞 ${liked} 个!`);
+          clearInterval(checkSuccess);
+        } else {
+          beforeSynced = synced;
+        }
+      }
+    }, 500);
   }
 })();
