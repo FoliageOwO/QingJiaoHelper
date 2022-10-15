@@ -28,6 +28,21 @@
     return;
   }
 
+  function request(method, api, success, data={}) {
+    let url = `https://www.2-class.com/api${api}`;
+    console.debug(`[${method}] ${url}`, data);
+    if (method === 'GET') {
+      return $.ajax({ method: 'GET', url, success, error });
+    } else {
+      return $.ajax({
+        method: 'GET', url, success, error,
+        contentType: 'application/json;charset=UTF-8',
+        dataType: 'json',
+        data: JSON.stringify(data)
+      });
+    }
+  }
+
   let location = document.location;
   let pathname = location.pathname;
   let reqtoken = window.__DATA__.reqtoken; // so easy get dumb developer LMFAOOO
@@ -42,24 +57,22 @@
   }
 
   function startCourse(courseId) {
-    $.ajax({
-      method: 'GET',
-      url: `https://www.2-class.com/api/exam/getTestPaperList?courseId=${courseId}`,
-      success: resp => {
-        let data = resp.data;
-        let title = data.papaerTitle; // typo xD
-        let testPaperList = data.testPaperList;
-        if (!isNone(testPaperList)) {
-          let answers = testPaperList.map(column => column.answer);
-          console.debug(`成功获取到课程 [${courseId}] 的数据: ${title}`);
-          console.debug('成功获取到答案', answers);
-          commit(answers);
-        } else {
+    request('GET', `/exam/getTestPaperList?courseId=${courseId}`, resp => {
+      let data = resp.data;
+      let title = data.papaerTitle; // typo xD
+      let testPaperList = data.testPaperList;
+      if (!isNone(testPaperList)) {
+        let answers = testPaperList.map(column => column.answer);
+        console.debug(`成功获取到课程 [${courseId}] 的数据: ${title}`);
+        console.debug('成功获取到答案', answers);
+        commit(answers);
+      } else {
+        let errorMsg = data.errorMsg;
+        if (errorMsg !== '该课程课时考试已经完成') {
           startCourse(courseId);
         }
-      },
-      error
-    })
+      }
+    });
 
     function commit(answers) {
       console.debug(`正在提交课程 [${courseId}] 答案...`)
@@ -75,23 +88,15 @@
       }
       let committed = 0;
 
-      $.ajax({
-        method: 'POST',
-        url: 'https://www.2-class.com/api/exam/commit',
-        contentType: 'application/json;charset=UTF-8', // use application/json or 415 error
-        dataType: 'json', // maybe useless
-        data: JSON.stringify(data), // must use JSON.stringify
-        success: resp => {
-          let flag = resp.data;
-          if (flag) {
-            console.debug(`成功提交课程 [${courseId}] 答案!`);
-            committed++;
-          } else {
-            console.error(`无法提交课程 [${courseId}] 答案!`, resp);
-          }
-        },
-        error
-      });
+      request('POST', '/exam/commit', resp => {
+        let flag = resp.data;
+        if (flag) {
+          console.debug(`成功提交课程 [${courseId}] 答案!`);
+          committed++;
+        } else {
+          console.error(`无法提交课程 [${courseId}] 答案!`, resp);
+        }
+      }, data);
 
       let beforeCommitted = committed;
       let checkCommitUpdate = setInterval(() => {
@@ -108,41 +113,31 @@
   }
 
   function taskCourses() {
-    $.ajax({
-      method: 'GET',
-      url: 'https://www.2-class.com/api/course/getHomepageGrade',
-      success: resp1 => {
-        let grades = resp1.data.map(it => it.value);
-        console.debug('获取年级列表', grades);
-        for (let grade of grades) {
-          // get courses
-          $.ajax({
-            method: 'GET',
-            url: `https://www.2-class.com/api/course/getHomepageCourseList?grade=${grade}&pageSize=24&pageNo=1`,
-            success: resp2 => {
-              let courses = resp2.data.list
-                .filter(k => !k.isFinish && k.title != '期末考试') // skip finished and final exam
-                .map(j => j.courseId); // courseId => list
-              console.debug(`年级 [${grade}] 可用的课程 (没学过的):`, courses);
-              for (let courseId of courses) {
-                // [skip final exam]
-                if (courseId == 'finalExam') {
-                  console.debug('已跳过期末考试!');
-                  return;
-                }
-                // start course
-                if (!isNone(courseId)) {
-                  startCourse(courseId);
-                } else {
-                  console.warn('无法找到 `courseId`, 已跳过!');
-                }
-              }
-            },
-            error
-          })
-        }
-      },
-      error
+    request('GET', '/course/getHomepageGrade', resp1 => {
+      let grades = resp1.data.map(it => it.value);
+      console.debug('获取年级列表', grades);
+      for (let grade of grades) {
+        // get courses
+        request('GET', `/course/getHomepageCourseList?grade=${grade}&pageSize=24&pageNo=1`, resp2 => {
+          let courses = resp2.data.list
+            .filter(k => !k.isFinish && k.title != '期末考试') // skip finished and final exam
+            .map(j => j.courseId); // courseId => list
+          console.debug(`年级 [${grade}] 可用的课程 (没学过的):`, courses);
+          for (let courseId of courses) {
+            // [skip final exam]
+            if (courseId == 'finalExam') {
+              console.debug('已跳过期末考试!');
+              return;
+            }
+            // start course
+            if (!isNone(courseId)) {
+              startCourse(courseId);
+            } else {
+              console.warn('无法找到 `courseId`, 已跳过!');
+            }
+          }
+        });
+      }
     });
   }
 
@@ -161,48 +156,39 @@
       console.debug('获取年级列表 (自学)', gradesTabElements);
       for (let element of gradesTabElements) {
         let grade = element.innerText;
-        $.ajax({
-          method: 'GET',
-          url: `https://www.2-class.com/api/course/getHomepageCourseList?grade=自学&pageNo=1&pageSize=500&sort=&type=${grade}`,
-          success: resp => {
-            let courses = resp.data.list
-              .filter(k => !k.isFinish && k.title != '期末考试') // skip finished and final exam
-              .map(j => j.courseId); // courseId => list
-              console.debug(`年级 [${grade}] 可用的课程 (自学) (没学过的):`, courses);
-            for (let courseId of courses) {
-              // [skip final exam]
-              if (courseId == 'finalExam') {
-                console.debug('已跳过期末考试!'); // seems that selfCourses don't have final exam
-                return;
-              }
-              // start course
-              if (!isNone(courseId)) {
-                startCourse(courseId);
-              } else {
-                console.warn('无法找到 `courseId`, 已跳过!');
-              }
+        request('GET', `/course/getHomepageCourseList?grade=自学&pageNo=1&pageSize=500&sort=&type=${grade}`, resp => {
+          let courses = resp.data.list
+            .filter(k => !k.isFinish && k.title != '期末考试') // skip finished and final exam
+            .map(j => j.courseId); // courseId => list
+            console.debug(`年级 [${grade}] 可用的课程 (自学) (没学过的):`, courses);
+          for (let courseId of courses) {
+            // [skip final exam]
+            if (courseId == 'finalExam') {
+              console.debug('已跳过期末考试!'); // seems that selfCourses don't have final exam
+              return;
             }
-          },
-          error
-        })
+            // start course
+            if (!isNone(courseId)) {
+              startCourse(courseId);
+            } else {
+              console.warn('无法找到 `courseId`, 已跳过!');
+            }
+          }
+        });
       }
     }
   }
 
   function taskCredit() {
     // medal: 领取禁毒学子勋章
-    $.ajax({
-      method: 'GET',
-      url: 'https://www.2-class.com/api/medal/addMedal',
-      success: medalResp => {
-        let data = medalResp.data;
-        let status = data.status;
-        let num = data.medalNum;
-        if (status) {
-          console.debug(`成功领取禁毒徽章 [${num}]!`);
-        } else {
-          console.warn(`无法领取徽章 (可能已领取过), 已跳过!`)
-        }
+    request('GET', '/medal/addMedal', medalResp => {
+      let data = medalResp.data;
+      let status = data.status;
+      let num = data.medalNum;
+      if (status) {
+        console.debug(`成功领取禁毒徽章 [${num}]!`);
+      } else {
+        console.warn(`无法领取徽章 (可能已领取过), 已跳过!`)
       }
     });
 
@@ -222,68 +208,42 @@
     let liked = 0;
 
     for (let category of categorys) {
-      $.ajax({
-        method: 'POST',
-        url: 'https://www.2-class.com/api/resource/getBeforeResourcesByCategoryName',
-        contentType: 'application/json;charset=UTF-8',
-        dataType: 'json',
-        data: JSON.stringify(category),
-        success: resourcesResp => {
-          let resources = resourcesResp.data.list.map(it => {
-            return {
-              title: it.description, resourceId: it.resourceId
-            };
-          });
-          console.debug(`获取分类 ${category.categoryName} 的资源`, resources);
-          for (let resource of resources) {
-            let resourceId = resource.resourceId;
-            // sync resource
-            $.ajax({
-              method: 'POST',
-              url: 'https://www.2-class.com/api/growth/sync/resource',
-              contentType: 'application/json;charset=UTF-8',
-              dataType: 'json',
-              data: JSON.stringify({
-                resourceId, reqtoken
-              }),
-              success: resourcePostResp => {
-                let result = resourcePostResp.data.result;
-                if (result) {
-                  console.debug(`成功同步资源 [${resourceId}]: ${resource.title}!`);
-                  synced++;
-                } else {
-                  console.warn(`同步资源 [${resourceId}] 失败, 已跳过!`);
-                }
-                return;
-              }
-            });
+      request('POST', '/resource/getBeforeResourcesByCategoryName', resourcesResp => {
+        let resources = resourcesResp.data.list.map(it => {
+          return {
+            title: it.description, resourceId: it.resourceId
+          };
+        });
 
-            // like resource
-            $.ajax({
-              method: 'POST',
-              url: 'https://www.2-class.com/api/resource/likePC',
-              contentType: 'application/json;charset=UTF-8',
-              dataType: 'json',
-              data: JSON.stringify({
-                resourceId, reqtoken
-              }),
-              success: resourceLikeResp => {
-                let count = resourceLikeResp.data;
-                let flag = resourceLikeResp.success;
-                let already_like = !$.isNumeric(count) && count.errorCode === 'ALREADY_like';
-                if ($.isNumeric(count) && flag) {
-                  console.debug(`成功点赞资源 [${resourceId}]: ${count}!`);
-                  liked++;
-                } else {
-                  console.warn(`无法点赞资源 [${resourceId}], 是否已点赞: ${already_like}, 已跳过!`);
-                }
-              },
-              error
-            });
-          }
-        },
-        error
-      });
+        console.debug(`获取分类 ${category.categoryName} 的资源`, resources);
+        for (let resource of resources) {
+          let resourceId = resource.resourceId;
+          let data = { resourceId, reqtoken };
+          // sync resource
+          request('POST', '/growth/sync/resource', resourcePostResp => {
+            let result = resourcePostResp.data.result;
+            if (result) {
+              console.debug(`成功同步资源 [${resourceId}]: ${resource.title}!`);
+              synced++;
+            } else {
+              console.warn(`同步资源 [${resourceId}] 失败, 已跳过!`);
+            }
+          }, data);
+
+          // like resource
+          request('POST', '/resource/likePC', resourceLikeResp => {
+            let count = resourceLikeResp.data;
+            let flag = resourceLikeResp.success;
+            let already_like = !$.isNumeric(count) && count.errorCode === 'ALREADY_like';
+            if ($.isNumeric(count) && flag) {
+              console.debug(`成功点赞资源 [${resourceId}]: ${count}!`);
+              liked++;
+            } else {
+              console.warn(`无法点赞资源 [${resourceId}], 是否已点赞: ${already_like}, 已跳过!`);
+            }
+          }, data);
+        }
+      }, category);
     }
 
     let beforeSynced = synced;
