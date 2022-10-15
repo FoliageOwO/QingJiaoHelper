@@ -133,7 +133,7 @@
             if (!isNone(courseId)) {
               startCourse(courseId);
             } else {
-              console.warn('无法找到 `courseId`, 已跳过!');
+              console.debug('[!] 无法找到 `courseId`, 已跳过!');
             }
           }
         });
@@ -171,7 +171,7 @@
             if (!isNone(courseId)) {
               startCourse(courseId);
             } else {
-              console.warn('无法找到 `courseId`, 已跳过!');
+              console.debug('[!] 无法找到 `courseId`, 已跳过!');
             }
           }
         });
@@ -188,7 +188,7 @@
       if (status) {
         console.debug(`成功领取禁毒徽章 [${num}]!`);
       } else {
-        console.warn(`无法领取徽章 (可能已领取过), 已跳过!`)
+        console.debug(`[!] 无法领取徽章 (可能已领取过), 已跳过!`)
       }
     });
 
@@ -226,7 +226,7 @@
               console.debug(`成功同步资源 [${resourceId}]: ${resource.title}!`);
               synced++;
             } else {
-              console.warn(`同步资源 [${resourceId}] 失败, 已跳过!`);
+              console.debug(`[!] 同步资源 [${resourceId}] 失败, 已跳过!`);
             }
           }, data);
 
@@ -239,7 +239,7 @@
               console.debug(`成功点赞资源 [${resourceId}]: ${count}!`);
               liked++;
             } else {
-              console.warn(`无法点赞资源 [${resourceId}], 是否已点赞: ${already_like}, 已跳过!`);
+              console.debug(`[!] 无法点赞资源 [${resourceId}], 是否已点赞: ${already_like}, 已跳过!`);
             }
           }, data);
         }
