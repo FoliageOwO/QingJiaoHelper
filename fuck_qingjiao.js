@@ -194,15 +194,15 @@
 
     // resources: 心理减压, 耕读学堂 [耕读, 电影, 音乐, 体育, 美术, 自然, 公开课], 校园安全
     let categorys = [
-      { categoryName: 'public_good', pageNo: 1, pageSize: 100, reqtoken, tag: 'read' },
-      { categoryName: 'ma_yun_recommend', pageNo: 1, pageSize: 100, reqtoken, tag: 'labour' }, // the `ma_yun_recommend` has lots of sub-categorys
-      { categoryName: 'ma_yun_recommend', pageNo: 1, pageSize: 100, reqtoken, tag: 'movie' },
-      { categoryName: 'ma_yun_recommend', pageNo: 1, pageSize: 100, reqtoken, tag: 'music' },
-      { categoryName: 'ma_yun_recommend', pageNo: 1, pageSize: 100, reqtoken, tag: 'physicalEducation' },
-      { categoryName: 'ma_yun_recommend', pageNo: 1, pageSize: 100, reqtoken, tag: 'arts' },
-      { categoryName: 'ma_yun_recommend', pageNo: 1, pageSize: 100, reqtoken, tag: 'natural' },
-      { categoryName: 'ma_yun_recommend', pageNo: 1, pageSize: 100, reqtoken, tag: 'publicWelfareFoundation' },
-      { categoryName: 'school_safe', pageNo: 1, pageSize: 100, reqtoken, tag: 'safeVolunteer' }
+      { name: 'public_good', tag: 'read' },
+      { name: 'ma_yun_recommend', tag: 'labour' }, // the `ma_yun_recommend` has lots of sub-categorys
+      { name: 'ma_yun_recommend', tag: 'movie' },
+      { name: 'ma_yun_recommend', tag: 'music' },
+      { name: 'ma_yun_recommend', tag: 'physicalEducation' },
+      { name: 'ma_yun_recommend', tag: 'arts' },
+      { name: 'ma_yun_recommend', tag: 'natural' },
+      { name: 'ma_yun_recommend', tag: 'publicWelfareFoundation' },
+      { name: 'school_safe', tag: 'safeVolunteer' }
     ];
     let synced = 0;
     let liked = 0;
@@ -215,7 +215,7 @@
           };
         });
 
-        console.debug(`获取分类 ${category.categoryName} 的资源`, resources);
+        console.debug(`获取分类 ${category.name} 的资源`, resources);
         for (let resource of resources) {
           let resourceId = resource.resourceId;
           let data = { resourceId, reqtoken };
@@ -243,7 +243,7 @@
             }
           }, data);
         }
-      }, category);
+      }, { categoryName: category.name, pageNo: 1, pageSize: 100, reqtoken, tag: category.tag });
     }
 
     let beforeSynced = synced;
