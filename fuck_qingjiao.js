@@ -35,7 +35,7 @@
       return $.ajax({ method: 'GET', url, success, error });
     } else {
       return $.ajax({
-        method: 'GET', url, success, error,
+        method: 'POST', url, success, error,
         contentType: 'application/json;charset=UTF-8',
         dataType: 'json',
         data: JSON.stringify(data)
