@@ -18,7 +18,7 @@
   }
 
   if (isNone($.ajax) || isNone($.isNumeric)) {
-    console.error('无法找到脚本所需的 jQuery 函数!')
+    console.error('无法找到脚本所需的 jQuery 函数!');
     return;
   }
 
@@ -75,7 +75,7 @@
     });
 
     function commit(answers) {
-      console.debug(`正在提交课程 [${courseId}] 答案...`)
+      console.debug(`正在提交课程 [${courseId}] 答案...`);
       let data = {
         courseId,
         examCommitReqDataList: answers.map((answer, index) => {
@@ -85,7 +85,7 @@
           }
         }),
         reqtoken
-      }
+      };
       let committed = 0;
 
       request('POST', '/exam/commit', resp => {
