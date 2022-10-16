@@ -22,7 +22,7 @@
 // @require              https://cdn.bootcdn.net/ajax/libs/xlsx/0.18.5/xlsx.full.min.js
 // @resource toastifycss https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css
 // @resource buefycss    https://unpkg.com/buefy/dist/buefy.min.css
-// @resource menuhtml    
+// @resource menuhtml    https://fqj.vercel.app/menu.html
 // ==/UserScript==
 
 'use strict';
@@ -134,7 +134,72 @@ function startCourse(courseId) {
 }
 
 function showMenu() {
+  let menucss = `.fqj-menu-container{position:fixed;z-index:9999;right:20px;top:10px}`;
+  GM_addStyle(menucss);
+  
+  let menuhtml = GM_getResourceText('menuhtml');
+  let container = document.createElement('div');
+  container.classList.add('fqj-menu-container');
+  container.innerHTML = menuhtml;
+  document.body.appendChild(container);
 
+  new Vue({
+    el: '#fqj-app',
+    data() {
+      return {
+        isOpen: -1,
+        collapses: [
+          { title: '功能开关' },
+          { title: '批量导入' },
+          { title: '其他' }
+        ],
+        course: true,
+        selfCourse: true,
+        credits: true,
+        file: null
+      }
+    },
+    methods: {
+      autoComplete() {
+        Dialog.DialogProgrammatic.confirm({
+          title: '你确定吗？',
+          message: '一次性请求过多 api 可能会导致出现 bug，虽然这个可以使用但是我并不保证能够正常工作，因此我建议你手动分多次激活。',
+          confirmText: '确定',
+          cancelText: '算了',
+          type: 'is-danger',
+          onConfirm: () => {
+            console.log('confirm')
+          }
+        });
+      },
+
+      startFromDatas() {
+        const file = this.file;
+        if (file != null) {
+          const fileReader = new FileReader();
+          fileReader.onload = event => {
+            try {
+              const { result } = event.target;
+              const workbook = XLSX.read(result, { type: 'binary' });
+              let data = [];
+              for (const sheet in workbook.Sheets) {
+                if (workbook.Sheets.hasOwnProperty(sheet)) {
+                  data = data.concat(XLSX.utils.sheet_to_json(workbook.Sheets[sheet]));
+                  break;
+                }
+              }
+              console.log(data);
+            } catch (e) {
+              console.error(e);
+            }
+          }
+          fileReader.readAsBinaryString(file);
+        } else {
+          console.error('no');
+        }
+      }
+    }
+  });
 }
 
 
@@ -143,6 +208,11 @@ function showMenu() {
   GM_addStyle(GM_getResourceText('toastifycss')); // apply toastifycss style file
   GM_addStyle(GM_getResourceText('buefycss')); // apply buefy style file
   GM_registerMenuCommand('菜单', showMenu); // register menu
+  
+  // add vue@2
+  let vueScript = document.createElement('script');
+  vueScript.setAttribute('src', 'https://unpkg.com/vue@2');
+  document.body.appendChild(vueScript);
 
   processSiteScript();
   const location = document.location;

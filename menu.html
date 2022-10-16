@@ -2,7 +2,6 @@
   .fqj-menu {
     background-color: rgb(216, 216, 216);
     height: 50%;
-    width: 20%;
     box-shadow: 7px 7px 5px #888888;
     border-radius: 10px;
     padding: 10px;
@@ -66,63 +65,3 @@
     作者：WindLeaf
   </div>
 </div>
-
-<script type="text/javascript">
-  const app = new Vue({
-    el: '#fqj-app',
-    data() {
-      return {
-        isOpen: -1,
-        collapses: [
-          { title: '功能开关' },
-          { title: '批量导入' },
-          { title: '其他' }
-        ],
-        course: true,
-        selfCourse: true,
-        credits: true,
-        file: null
-      }
-    },
-    methods: {
-      autoComplete() {
-        Dialog.DialogProgrammatic.confirm({
-          title: '你确定吗？',
-          message: '一次性请求过多 api 可能会导致出现 bug，虽然这个可以使用但是我并不保证能够正常工作，因此我建议你手动分多次激活。',
-          confirmText: '确定',
-          cancelText: '算了',
-          type: 'is-danger',
-          onConfirm: () => {
-            console.log('confirm')
-          }
-        });
-      },
-
-      startFromDatas() {
-        const file = this.file;
-        if (file != null) {
-          const fileReader = new FileReader();
-          fileReader.onload = event => {
-            try {
-              const { result } = event.target;
-              const workbook = XLSX.read(result, { type: 'binary' });
-              let data = [];
-              for (const sheet in workbook.Sheets) {
-                if (workbook.Sheets.hasOwnProperty(sheet)) {
-                  data = data.concat(XLSX.utils.sheet_to_json(workbook.Sheets[sheet]));
-                  break;
-                }
-              }
-              console.log(data);
-            } catch (e) {
-              console.error(e);
-            }
-          }
-          fileReader.readAsBinaryString(file);
-        } else {
-          console.error('no');
-        }
-      }
-    }
-  });
-</script>
