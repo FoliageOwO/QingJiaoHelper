@@ -7,10 +7,22 @@
 // @match                *://www.2-class.com/*
 // @grant                GM_addStyle
 // @grant                GM_getResourceText
+// @grant                GM_registerMenuCommand
 // @license              GPL-3.0
 // @require              http://cdn.staticfile.org/jquery/3.6.1/jquery.min.js
 // @require              https://cdn.jsdelivr.net/npm/toastify-js
+// @require              https://unpkg.com/vue@2
+// @require              https://unpkg.com/buefy/dist/components/tag
+// @require              https://unpkg.com/buefy/dist/components/collapse
+// @require              https://unpkg.com/buefy/dist/components/switch
+// @require              https://unpkg.com/buefy/dist/components/button
+// @require              https://unpkg.com/buefy/dist/components/dialog
+// @require              https://unpkg.com/buefy/dist/components/upload
+// @require              https://unpkg.com/buefy/dist/components/field
+// @require              https://cdn.bootcdn.net/ajax/libs/xlsx/0.18.5/xlsx.full.min.js
 // @resource toastifycss https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css
+// @resource buefycss    https://unpkg.com/buefy/dist/buefy.min.css
+// @resource menuhtml    
 // ==/UserScript==
 
 'use strict';
@@ -121,10 +133,16 @@ function startCourse(courseId) {
   }
 }
 
+function showMenu() {
+
+}
+
 
 (function() {
   // script pre-loads
   GM_addStyle(GM_getResourceText('toastifycss')); // apply toastifycss style file
+  GM_addStyle(GM_getResourceText('buefycss')); // apply buefy style file
+  GM_registerMenuCommand('菜单', showMenu); // register menu
 
   processSiteScript();
   const location = document.location;

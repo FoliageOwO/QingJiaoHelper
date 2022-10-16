@@ -1,0 +1,128 @@
+<style>
+  .fqj-menu {
+    background-color: rgb(216, 216, 216);
+    height: 50%;
+    width: 20%;
+    box-shadow: 7px 7px 5px #888888;
+    border-radius: 10px;
+    padding: 10px;
+  }
+  
+  .fqj-menu-item {
+    margin: 10px;
+  }
+  
+  .fqj-center {
+    text-align: center;
+    align-items: center;
+  }
+  
+  .fqj-title {
+    font-size: 25px;
+    font-weight: bold;
+  }
+  
+  .fqj-card-content {
+    padding-top: 10px;
+  }
+</style>
+
+<div class="fqj-menu" id="fqj-app">
+  <div class="fqj-center fqj-menu-item">
+    <a class="fqj-title">fuck_qingjiao</a>
+    <b-tag rounded type="is-success">v0.2</b-tag>
+  </div>
+  <div class="fqj-menu-item">
+    <div>
+      <b-collapse class="card" animation="slide" v-for="(collapse, index) of collapses" :key="index" :open="isOpen == index" @open="isOpen = index" :aria-id="'contentIdForA11y5-' + index">
+        <template #trigger="props">
+          <div class="card-header" role="button" :aria-controls="'contentIdForA11y5-' + index" :aria-expanded="props.open">
+            <p class="card-header-title">{{ collapse.title }}</p>
+          </div>
+        </template>
+        <div class="card-content">
+          <div v-if="isOpen == 0">
+            <b-switch v-model="course" type="is-success" size="is-small">完成所有课程 (不包括考试)</b-switch>
+            <b-switch class="fqj-card-content" v-model="selfCourse" type="is-success" size="is-small">完成所有自学课程 (不包括考试)</b-switch>
+            <b-switch class="fqj-card-content" v-model="credits" type="is-success" size="is-small">获取每日学分</b-switch>
+          </div>
+          <div v-if="isOpen == 1">
+            <b-field class="file" type="is-info" :class="{'has-name': !!file}">
+              <b-upload v-model="file" class="file-label" accept=".xlsx, .xls">
+                <span class="file-cta">
+                  <span class="file-label">点击上传</span>
+                </span>
+                <span class="file-name" v-if="file">{{ file.name }}</span>
+              </b-upload>
+            </b-field>
+            <b-button type="is-info" @click="startFromDatas">开始</b-button>
+          </div>
+          <b-button type="is-danger" expanded @click="autoComplete" v-if="isOpen == 2">一键完成</b-button>
+        </div>
+      </b-collapse>
+    </div>
+  </div>
+  <div class="fqj-menu-item">
+    作者：WindLeaf
+  </div>
+</div>
+
+<script type="text/javascript">
+  const app = new Vue({
+    el: '#fqj-app',
+    data() {
+      return {
+        isOpen: -1,
+        collapses: [
+          { title: '功能开关' },
+          { title: '批量导入' },
+          { title: '其他' }
+        ],
+        course: true,
+        selfCourse: true,
+        credits: true,
+        file: null
+      }
+    },
+    methods: {
+      autoComplete() {
+        Dialog.DialogProgrammatic.confirm({
+          title: '你确定吗？',
+          message: '一次性请求过多 api 可能会导致出现 bug，虽然这个可以使用但是我并不保证能够正常工作，因此我建议你手动分多次激活。',
+          confirmText: '确定',
+          cancelText: '算了',
+          type: 'is-danger',
+          onConfirm: () => {
+            console.log('confirm')
+          }
+        });
+      },
+
+      startFromDatas() {
+        const file = this.file;
+        if (file != null) {
+          const fileReader = new FileReader();
+          fileReader.onload = event => {
+            try {
+              const { result } = event.target;
+              const workbook = XLSX.read(result, { type: 'binary' });
+              let data = [];
+              for (const sheet in workbook.Sheets) {
+                if (workbook.Sheets.hasOwnProperty(sheet)) {
+                  data = data.concat(XLSX.utils.sheet_to_json(workbook.Sheets[sheet]));
+                  break;
+                }
+              }
+              console.log(data);
+            } catch (e) {
+              console.error(e);
+            }
+          }
+          fileReader.readAsBinaryString(file);
+        } else {
+          console.error('no');
+        }
+      }
+    }
+  });
+</script>
