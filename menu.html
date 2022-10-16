@@ -41,8 +41,8 @@
         </template>
         <div class="card-content">
           <div v-if="isOpen == 0">
-            <b-switch v-model="course" type="is-success" size="is-small">完成所有课程 (不包括考试)</b-switch>
-            <b-switch class="fqj-card-content" v-model="selfCourse" type="is-success" size="is-small">完成所有自学课程 (不包括考试)</b-switch>
+            <b-switch v-model="course" type="is-success" size="is-small">完成所有课程 (不包括考试)</b-switch><br/>
+            <b-switch class="fqj-card-content" v-model="selfCourse" type="is-success" size="is-small">完成所有自学课程 (不包括考试)</b-switch><br/>
             <b-switch class="fqj-card-content" v-model="credits" type="is-success" size="is-small">获取每日学分</b-switch>
           </div>
           <div v-if="isOpen == 1">
