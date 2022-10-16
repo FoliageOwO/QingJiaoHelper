@@ -13,131 +13,134 @@
 // @resource toastifycss https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css
 // ==/UserScript==
 
-(function() {
-  'use strict';
+'use strict';
 
-  GM_addStyle(GM_getResourceText('toastifycss')); // apply toastifycss style file
+if (isNone($.ajax) || isNone($.isNumeric)) {
+  showMessage('无法找到脚本所需的 jQuery 函数!', 'red');
+  return;
+}
 
-  function showMessage(text, color) {
-    Toastify({
-      text,
-      duration: 5 * 1000,
-      newWindow: true,
-      gravity: 'top',
-      position: 'right',
-      stopOnFocus: true,
-      style: { background: color }
-    }).showToast();
+function isNone(anyObj) {
+  return anyObj == undefined || anyObj == null;
+}
+
+function showMessage(text, color) {
+  Toastify({
+    text,
+    duration: 5 * 1000,
+    newWindow: true,
+    gravity: 'top',
+    position: 'right',
+    stopOnFocus: true,
+    style: { background: color }
+  }).showToast();
+}
+
+const error = err => {
+  showMessage(`在请求的时候发生了个错误, 错误代码 [${err.status}], 具体响应内容在控制台中`, 'red')
+  console.error(`[${err.status}]`, err.responseText);
+  return;
+}
+
+function request(method, api, success, data={}) {
+  let url = `https://www.2-class.com/api${api}`;
+  console.debug(`[${method}] ${url}`, data);
+  if (method === 'GET') {
+    return $.ajax({ method: 'GET', url, success, error });
+  } else {
+    return $.ajax({
+      method: 'POST', url, success, error,
+      contentType: 'application/json;charset=UTF-8',
+      dataType: 'json',
+      data: JSON.stringify(data)
+    });
   }
+}
 
-  function isNone(anyObj) {
-    return anyObj == undefined || anyObj == null;
-  }
-
-  if (isNone($.ajax) || isNone($.isNumeric)) {
-    showMessage('无法找到脚本所需的 jQuery 函数!', 'red');
-    return;
-  }
-
-  const error = err => {
-    // sadly error occurred
-    showMessage(`在请求的时候发生了个错误, 错误代码 [${err.status}], 具体响应内容在控制台中`, 'red')
-    console.error(`[${err.status}]`, err.responseText);
-    return;
-  }
-
-  function request(method, api, success, data={}) {
-    let url = `https://www.2-class.com/api${api}`;
-    console.debug(`[${method}] ${url}`, data);
-    if (method === 'GET') {
-      return $.ajax({ method: 'GET', url, success, error });
-    } else {
-      return $.ajax({
-        method: 'POST', url, success, error,
-        contentType: 'application/json;charset=UTF-8',
-        dataType: 'json',
-        data: JSON.stringify(data)
-      });
-    }
-  }
-
+function processSiteScript() {
   for (let script of document.getElementsByTagName('script')) {
     if (script.innerText.indexOf('window.__DATA__') != -1) {
       eval(script.innerText);
     }
   }
-  
-  let location = document.location;
-  let pathname = location.pathname;
-  let reqtoken = window.__DATA__.reqtoken; // so easy get dumb developer LMFAOOO
+}
 
+function startCourse(courseId) {
+  request('GET', `/exam/getTestPaperList?courseId=${courseId}`, resp => {
+    let data = resp.data;
+    let title = data.papaerTitle; // typo xD
+    let testPaperList = data.testPaperList;
+    if (!isNone(testPaperList)) {
+      let answers = testPaperList.map(column => column.answer);
+      console.debug(`成功获取到课程 [${courseId}] 的数据: ${title}`);
+      console.debug('成功获取到答案', answers);
+      commit(answers);
+    } else {
+      let errorMsg = data.errorMsg;
+      if (errorMsg !== '该课程课时考试已经完成') {
+        startCourse(courseId);
+      }
+    }
+  });
+
+  function commit(answers) {
+    console.debug(`正在提交课程 [${courseId}] 答案...`);
+    let data = {
+      courseId,
+      examCommitReqDataList: answers.map((answer, index) => {
+        return {
+          examId: index + 1, // examId = index + 1
+          answer: $.isNumeric(answer) ? Number(answer) : answer // single answer must be a number
+        }
+      }),
+      reqtoken
+    };
+    let committed = 0;
+
+    request('POST', '/exam/commit', resp => {
+      let flag = resp.data;
+      if (flag) {
+        console.debug(`成功提交课程 [${courseId}] 答案!`);
+        committed++;
+      } else {
+        console.error(`无法提交课程 [${courseId}] 答案!`, resp);
+      }
+    }, data);
+
+    let beforeCommitted = committed;
+    let checkCommitUpdate = setInterval(() => {
+      if (committed != 0) {
+        if (committed == beforeCommitted) {
+          showMessage(`成功完成了 ${committed} 个课程!`, 'green');
+          clearInterval(checkCommitUpdate);
+        } else {
+          beforeCommitted = committed;
+        }
+      }
+    }, 500);
+  }
+}
+
+
+(function() {
+  // script pre-loads
+  GM_addStyle(GM_getResourceText('toastifycss')); // apply toastifycss style file
+
+  processSiteScript();
+  const location = document.location;
+  const pathname = location.pathname;
+  const reqtoken = window.__DATA__.reqtoken;
+  
   const features = [
     { path: ['/courses', '/drugControlClassroom/courses'], title: '自动完成所有课程 (不包括考试)', func: taskCourses },
     { path: ['/selfCourse', '/drugControlClassroom/selfCourse'], title: '自动完成所有课程 (自学) (不包括考试)', func: taskSelfCourses },
     { path: ['/admin/creditCenter'], title: '自动获取每日学分', func: taskCredit }
   ];
 
-  // check url
   for (let feature of features) {
     if (feature.path.indexOf(pathname) != -1) {
       showMessage(`激活功能: ${feature.title}`, 'green');
       feature.func();
-    }
-  }
-
-  function startCourse(courseId) {
-    request('GET', `/exam/getTestPaperList?courseId=${courseId}`, resp => {
-      let data = resp.data;
-      let title = data.papaerTitle; // typo xD
-      let testPaperList = data.testPaperList;
-      if (!isNone(testPaperList)) {
-        let answers = testPaperList.map(column => column.answer);
-        console.debug(`成功获取到课程 [${courseId}] 的数据: ${title}`);
-        console.debug('成功获取到答案', answers);
-        commit(answers);
-      } else {
-        let errorMsg = data.errorMsg;
-        if (errorMsg !== '该课程课时考试已经完成') {
-          startCourse(courseId);
-        }
-      }
-    });
-
-    function commit(answers) {
-      console.debug(`正在提交课程 [${courseId}] 答案...`);
-      let data = {
-        courseId,
-        examCommitReqDataList: answers.map((answer, index) => {
-          return {
-            examId: index + 1, // examId = index + 1
-            answer: $.isNumeric(answer) ? Number(answer) : answer // single answer must be a number
-          }
-        }),
-        reqtoken
-      };
-      let committed = 0;
-
-      request('POST', '/exam/commit', resp => {
-        let flag = resp.data;
-        if (flag) {
-          console.debug(`成功提交课程 [${courseId}] 答案!`);
-          committed++;
-        } else {
-          console.error(`无法提交课程 [${courseId}] 答案!`, resp);
-        }
-      }, data);
-
-      let beforeCommitted = committed;
-      let checkCommitUpdate = setInterval(() => {
-        if (committed != 0) {
-          if (committed == beforeCommitted) {
-            showMessage(`成功完成了 ${committed} 个课程!`, 'green');
-            clearInterval(checkCommitUpdate);
-          } else {
-            beforeCommitted = committed;
-          }
-        }
-      }, 500);
     }
   }
 
