@@ -1,30 +1,48 @@
 // ==UserScript==
-// @name         fuck_qingjiao
-// @namespace    http://tampermonkey.net/
-// @version      0.2
-// @description  Fuck 青骄第二课堂 全自动完成所有课程+学分自动获取
-// @author       WindLeaf
-// @match        *://www.2-class.com/*
-// @grant        none
-// @license      GPL-3.0
-// @require      http://cdn.staticfile.org/jquery/3.6.1/jquery.min.js
+// @name                 fuck_qingjiao_local
+// @namespace            http://tampermonkey.net/
+// @version              0.2
+// @description          Fuck 青骄第二课堂 全自动完成所有课程+学分自动获取
+// @author               WindLeaf
+// @match                *://www.2-class.com/*
+// @grant                GM_addStyle
+// @grant                GM_getResourceText
+// @license              GPL-3.0
+// @require              http://cdn.staticfile.org/jquery/3.6.1/jquery.min.js
+// @require              https://cdn.jsdelivr.net/npm/toastify-js
+// @resource toastifycss https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css
 // ==/UserScript==
 
 (function() {
   'use strict';
+
+  GM_addStyle(GM_getResourceText('toastifycss')); // apply toastifycss style file
+
+  function showMessage(text, color) {
+    Toastify({
+      text,
+      duration: 5 * 1000,
+      newWindow: true,
+      gravity: 'top',
+      position: 'right',
+      stopOnFocus: true,
+      style: { background: color }
+    }).showToast();
+  }
 
   function isNone(anyObj) {
     return anyObj == undefined || anyObj == null;
   }
 
   if (isNone($.ajax) || isNone($.isNumeric)) {
-    console.error('无法找到脚本所需的 jQuery 函数!');
+    showMessage('无法找到脚本所需的 jQuery 函数!', 'red');
     return;
   }
 
   const error = err => {
     // sadly error occurred
-    console.error(`在请求的时候发生了个错误, 错误代码 [${err.status}]`, err.responseText);
+    showMessage(`在请求的时候发生了个错误, 错误代码 [${err.status}], 具体响应内容在控制台中`, 'red')
+    console.error(`[${err.status}]`, err.responseText);
     return;
   }
 
@@ -43,17 +61,28 @@
     }
   }
 
+  for (let script of document.getElementsByTagName('script')) {
+    if (script.innerText.indexOf('window.__DATA__') != -1) {
+      eval(script.innerText);
+    }
+  }
+  
   let location = document.location;
   let pathname = location.pathname;
   let reqtoken = window.__DATA__.reqtoken; // so easy get dumb developer LMFAOOO
 
+  const features = [
+    { path: ['/courses', '/drugControlClassroom/courses'], title: '自动完成所有课程 (不包括考试)', func: taskCourses },
+    { path: ['/selfCourse', '/drugControlClassroom/selfCourse'], title: '自动完成所有课程 (自学) (不包括考试)', func: taskSelfCourses },
+    { path: ['/admin/creditCenter'], title: '自动获取每日学分', func: taskCredit }
+  ];
+
   // check url
-  if (pathname === '/courses' || pathname === '/drugControlClassroom/courses') {
-    taskCourses();
-  } else if (pathname === '/selfCourse' || pathname === '/drugControlClassroom/selfCourse') {
-    taskSelfCourses();
-  } else if (pathname === '/admin/creditCenter') {
-    taskCredit();
+  for (let feature of features) {
+    if (feature.path.indexOf(pathname) != -1) {
+      showMessage(`激活功能: ${feature.title}`, 'green');
+      feature.func();
+    }
   }
 
   function startCourse(courseId) {
@@ -102,7 +131,7 @@
       let checkCommitUpdate = setInterval(() => {
         if (committed != 0) {
           if (committed == beforeCommitted) {
-            console.log(`成功提交了 ${committed} 个课程!`);
+            showMessage(`成功完成了 ${committed} 个课程!`, 'green');
             clearInterval(checkCommitUpdate);
           } else {
             beforeCommitted = committed;
@@ -123,6 +152,10 @@
             .filter(k => !k.isFinish && k.title != '期末考试') // skip finished and final exam
             .map(j => j.courseId); // courseId => list
           console.debug(`年级 [${grade}] 可用的课程 (没学过的):`, courses);
+          if (courses.length === 0) {
+            showMessage(`年级 [${grade}] 所有课程都是完成状态, 已跳过!`, 'blue');
+            return;
+          }
           for (let courseId of courses) {
             // [skip final exam]
             if (courseId == 'finalExam') {
@@ -161,6 +194,10 @@
             .filter(k => !k.isFinish && k.title != '期末考试') // skip finished and final exam
             .map(j => j.courseId); // courseId => list
             console.debug(`年级 [${grade}] 可用的课程 (自学) (没学过的):`, courses);
+          if (courses.length === 0) {
+            showMessage(`年级 [${grade}] 所有课程都是完成状态, 已跳过!`, 'blue');
+            return;
+          }
           for (let courseId of courses) {
             // [skip final exam]
             if (courseId == 'finalExam') {
@@ -186,7 +223,7 @@
       let status = data.status;
       let num = data.medalNum;
       if (status) {
-        console.debug(`成功领取禁毒徽章 [${num}]!`);
+        showMessage(`成功领取禁毒徽章 [${num}]!`, 'green');
       } else {
         console.debug(`[!] 无法领取徽章 (可能已领取过), 已跳过!`)
       }
@@ -250,7 +287,7 @@
     let checkSuccess = setInterval(() => {
       if (synced != 0) {
         if (synced == beforeSynced) {
-          console.log(`成功同步 ${synced} 个资源, 点赞 ${liked} 个!`);
+          showMessage(`成功同步 ${synced} 个资源, 点赞 ${liked} 个!`, 'green');
           clearInterval(checkSuccess);
         } else {
           beforeSynced = synced;
