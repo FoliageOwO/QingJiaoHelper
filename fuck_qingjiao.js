@@ -22,7 +22,7 @@
 // @require              https://cdn.bootcdn.net/ajax/libs/xlsx/0.18.5/xlsx.full.min.js
 // @resource toastifycss https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css
 // @resource buefycss    https://unpkg.com/buefy/dist/buefy.min.css
-// @resource menuhtml    https://fqj.vercel.app/menu.html
+// @resource menuhtml    https://fqj.pages.dev/menu.html
 // ==/UserScript==
 
 'use strict';
