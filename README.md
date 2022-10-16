@@ -9,7 +9,6 @@
 ## 插件地址
 
 + [Greasy Fork - fuck_qingjiao](https://greasyfork.org/zh-CN/scripts/452984-qingjiao)
-+ [Github - WindLeaf233/fuck_qingjiao](https://github.com/WindLeaf233/fuck_qingjiao/)
 
 ## 食用方法
 
