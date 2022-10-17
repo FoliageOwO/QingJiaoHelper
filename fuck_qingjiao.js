@@ -13,7 +13,7 @@
 // @license              GPL-3.0
 // @supportURL           https://github.com/WindLeaf233/fuck_qingjiao
 // @require              http://cdn.staticfile.org/jquery/3.6.1/jquery.min.js
-// @require              https://cdn.jsdelivr.net/npm/toastify-js
+// @require              https://cdn.bootcdn.net/ajax/libs/toastify-js/1.12.0/toastify.js
 // @require              https://unpkg.com/vue@2
 // @require              https://unpkg.com/buefy/dist/components/tag
 // @require              https://unpkg.com/buefy/dist/components/collapse
