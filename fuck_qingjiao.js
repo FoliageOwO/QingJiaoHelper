@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name                 fuck_qingjiao_local
-// @namespace            http://tampermonkey.net/
-// @version              0.2
-// @description          Fuck 青骄第二课堂 全自动完成所有课程+学分自动获取
+// @name                 fuck_qingjiao
+// @namespace            windleaf_fqj
+// @version              0.2.5
+// @description          青骄第二课堂: 自动完成所有课程 + 每日领取学分
 // @author               WindLeaf
 // @match                *://www.2-class.com/*
 // @grant                GM_addStyle
@@ -11,6 +11,7 @@
 // @grant                GM_getValue
 // @grant                GM_setValue
 // @license              GPL-3.0
+// @supportURL           https://github.com/WindLeaf233/fuck_qingjiao
 // @require              http://cdn.staticfile.org/jquery/3.6.1/jquery.min.js
 // @require              https://cdn.jsdelivr.net/npm/toastify-js
 // @require              https://unpkg.com/vue@2
@@ -217,6 +218,7 @@ function showMenu() {
     data() {
       return {
         isOpen: -1,
+        version: 'v0.2.5',
         collapses: [
           { title: '功能开关' },
           { title: '批量导入' },
