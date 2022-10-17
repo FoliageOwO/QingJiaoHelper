@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                 fuck_qingjiao
-// @namespace            windleaf_fqj
+// @namespace            http://tampermonkey.net/
 // @version              0.2.5
 // @description          青骄第二课堂: 自动完成所有课程 + 每日领取学分
 // @author               WindLeaf
