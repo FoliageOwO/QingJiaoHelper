@@ -54,7 +54,7 @@
                 <span class="file-name" v-if="file">{{ file.name }}</span>
               </b-upload>
             </b-field>
-            <b-button type="is-info" @click="startFromDatas">开始</b-button>
+            <b-button type="is-info" @click="startFromDatas" disabled>开始</b-button>
             <b-button type="is-warning" @click="reset">重置</b-button>
           </div>
           <b-button type="is-danger" expanded @click="autoComplete" v-if="isOpen == 2">一键完成</b-button>
@@ -64,5 +64,6 @@
   </div>
   <div class="fqj-menu-item">
     作者：WindLeaf
+    <b-button size="is-small" type="is-danger" @click="closeMenu">关闭</b-button>
   </div>
 </div>

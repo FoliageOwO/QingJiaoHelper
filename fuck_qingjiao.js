@@ -8,6 +8,8 @@
 // @grant                GM_addStyle
 // @grant                GM_getResourceText
 // @grant                GM_registerMenuCommand
+// @grant                GM_getValue
+// @grant                GM_setValue
 // @license              GPL-3.0
 // @require              http://cdn.staticfile.org/jquery/3.6.1/jquery.min.js
 // @require              https://cdn.jsdelivr.net/npm/toastify-js
@@ -77,7 +79,42 @@ function processSiteScript() {
   }
 }
 
-function startCourse(courseId) {
+processSiteScript();
+const reqtoken = window.__DATA__.reqtoken;
+const location = document.location;
+const pathname = location.pathname;
+
+function changeReactValue(element, value) {
+  let lastValue = element.value;
+  element.value = value;
+  let event = new Event('input', { bubbles: true });
+  event.simulated = true;
+  let tracker = element._valueTracker;
+  if (tracker) {
+    tracker.setValue(lastValue);
+  }
+  element.dispatchEvent(event);
+}
+
+function runWhenReady(readySelector, callback) {
+  var numAttempts = 0;
+  var tryNow = function() {
+    var elem = document.querySelector(readySelector);
+    if (elem) {
+      callback(elem);
+    } else {
+      numAttempts++;
+      if (numAttempts >= 34) {
+        console.warn(`无法找到元素 [${readySelector}]，已放弃！`)
+      } else {
+        setTimeout(tryNow, 250 * Math.pow(1.1, numAttempts));
+      }
+    }
+  };
+  tryNow();
+}
+
+function startCourse(courseId, successCallback) {
   request('GET', `/exam/getTestPaperList?courseId=${courseId}`, resp => {
     let data = resp.data;
     let title = data.papaerTitle; // typo xD
@@ -107,31 +144,63 @@ function startCourse(courseId) {
       }),
       reqtoken
     };
-    let committed = 0;
-
     request('POST', '/exam/commit', resp => {
       let flag = resp.data;
       if (flag) {
         console.debug(`成功提交课程 [${courseId}] 答案!`);
-        committed++;
+        successCallback();
       } else {
         console.error(`无法提交课程 [${courseId}] 答案!`, resp);
       }
     }, data);
-
-    let beforeCommitted = committed;
-    let checkCommitUpdate = setInterval(() => {
-      if (committed != 0) {
-        if (committed == beforeCommitted) {
-          showMessage(`成功完成了 ${committed} 个课程!`, 'green');
-          clearInterval(checkCommitUpdate);
-        } else {
-          beforeCommitted = committed;
-        }
-      }
-    }, 500);
   }
 }
+
+function checkDone(getCommittedCallBack, allDoneCallBack) {
+  let committed = getCommittedCallBack();
+  let beforeCommitted = committed;
+  let checkCommitUpdate = setInterval(() => {
+    if (committed != 0) {
+      if (committed == beforeCommitted) {
+        showMessage(`成功完成了 ${committed} 个课程!`, 'green');
+        allDoneCallBack(committed);
+        clearInterval(checkCommitUpdate);
+      } else {
+        beforeCommitted = committed;
+      }
+    }
+  }, 500);
+}
+
+function getGMValue(name, defaultValue) {
+  let value = GM_getValue(name);
+  if (value === undefined) {
+    value = defaultValue;
+    GM_setValue(defaultValue);
+  }
+  return value;
+}
+
+let course = getGMValue('course', true);
+let selfCourse = getGMValue('selfCourse', true);
+let credits = getGMValue('credits', true);
+let isLogined = getGMValue('isLogined', null);
+let loginedAccount = getGMValue('loginedAccount', '');
+let accounts = getGMValue('accounts', []);
+let autoCompleteCourseDone = getGMValue('autoCompleteCourseDone', false);
+let autoCompleteSelfCourseDone = getGMValue('autoCompleteSelfCourseDone', false);
+let autoCompleteCreditsDone = getGMValue('autoCompleteCreditsDone', false);
+
+let notAvailable = name => showMessage(`[${name}] 当前功能不可用，请刷新重试！`, 'red');
+
+let autoComplete = () => notAvailable('autoComplete');
+let startFromDatas = (_) => notAvailable('startFromDatas');
+let resetStartFromDatas = () => {
+  isLogined = null;
+  GM_setValue('isLogined', null);
+  showMessage('重置成功！', 'green');
+  location.pathname = '/';
+};
 
 function showMenu() {
   let menucss = `.fqj-menu-container{position:fixed;z-index:9999;right:20px;top:10px}`;
@@ -153,10 +222,36 @@ function showMenu() {
           { title: '批量导入' },
           { title: '其他' }
         ],
-        course: true,
-        selfCourse: true,
-        credits: true,
         file: null
+      }
+    },
+    computed: {
+      course: {
+        set(value) {
+          GM_setValue('course', value);
+          course = value;
+        },
+        get() {
+          return course;
+        }
+      },
+      selfCourse: {
+        set(value) {
+          GM_setValue('selfCourse', value);
+          selfCourse = value;
+        },
+        get() {
+          return selfCourse;
+        }
+      },
+      credits: {
+        set(value) {
+          GM_setValue('credits', value);
+          credits = value;
+        },
+        get() {
+          return credits;
+        }
       }
     },
     methods: {
@@ -167,9 +262,7 @@ function showMenu() {
           confirmText: '确定',
           cancelText: '算了',
           type: 'is-danger',
-          onConfirm: () => {
-            console.log('confirm')
-          }
+          onConfirm: () => autoComplete()
         });
       },
 
@@ -188,17 +281,44 @@ function showMenu() {
                   break;
                 }
               }
-              console.log(data);
+              startFromDatas(data);
             } catch (e) {
+              showMessage('在读取 xls 文件的过程中发生了个错误，请检查文件格式是否正确');
               console.error(e);
             }
           }
           fileReader.readAsBinaryString(file);
         } else {
-          console.error('no');
+          showMessage('无法读取文件对象，请检查文件格式是否正确！', 'red');
         }
+      },
+
+      reset() {
+        resetStartFromDatas();
+      },
+
+      closeMenu() {
+        document.body.removeChild(container);
       }
     }
+  });
+}
+
+function login(account, password) {
+  if (pathname !== '/') {
+    // jump to main page
+    location.pathname = '/';
+    return;
+  }
+
+  // todo
+}
+
+function logout() {
+  runWhenReady('#app > div > div > div > header > div > div.header-right-panel.hover-black > div.header-user-info > div > div > ul > li:nth-child(6) > a', logoutButton => {
+    GM_setValue('isLogined', false);
+    GM_setValue('account', '');
+    logoutButton.click(); // logout
   });
 }
 
@@ -208,25 +328,40 @@ function showMenu() {
   GM_addStyle(GM_getResourceText('toastifycss')); // apply toastifycss style file
   GM_addStyle(GM_getResourceText('buefycss')); // apply buefy style file
   GM_registerMenuCommand('菜单', showMenu); // register menu
-  
+
+  // if (isLogined === true) {
+  //   autoComplete();
+  //   let waiting = setInterval(() => {
+  //     if (autoCompleteCourseDone && autoCompleteSelfCourseDone && autoCompleteCreditsDone) {
+  //       showMessage(`账号 [${loginedAccount}] 已完成！`, 'green');
+  //       clearInterval(waiting);
+  //       logout();
+  //     }
+  //   }, 500);
+  //   return;
+  // } else if (isLogined === false) {
+  //   let nextAccount = accounts[0];
+  //   if (!isNone(nextAccount)) {
+  //     login(nextAccount.account, nextAccount.password);
+  //   } else {
+  //     showMessage('全部账号 (除出错误的) 已完成！', 'green');
+  //   }
+  //   return;
+  // }
+
   // add vue@2
   let vueScript = document.createElement('script');
   vueScript.setAttribute('src', 'https://unpkg.com/vue@2');
   document.body.appendChild(vueScript);
-
-  processSiteScript();
-  const location = document.location;
-  const pathname = location.pathname;
-  const reqtoken = window.__DATA__.reqtoken;
   
   const features = [
-    { path: ['/courses', '/drugControlClassroom/courses'], title: '自动完成所有课程 (不包括考试)', func: taskCourses },
-    { path: ['/selfCourse', '/drugControlClassroom/selfCourse'], title: '自动完成所有课程 (自学) (不包括考试)', func: taskSelfCourses },
-    { path: ['/admin/creditCenter'], title: '自动获取每日学分', func: taskCredit }
+    { path: ['/courses', '/drugControlClassroom/courses'], title: '自动完成所有课程 (不包括考试)', func: taskCourses, enabled: course },
+    { path: ['/selfCourse', '/drugControlClassroom/selfCourse'], title: '自动完成所有课程 (自学) (不包括考试)', func: taskSelfCourses, enabled: selfCourse },
+    { path: ['/admin/creditCenter'], title: '自动获取每日学分', func: taskCredit, enabled: credits }
   ];
 
   for (let feature of features) {
-    if (feature.path.indexOf(pathname) != -1) {
+    if (feature.path.indexOf(pathname) != -1 && feature.enabled) {
       showMessage(`激活功能: ${feature.title}`, 'green');
       feature.func();
     }
@@ -247,6 +382,8 @@ function showMenu() {
             showMessage(`年级 [${grade}] 所有课程都是完成状态, 已跳过!`, 'blue');
             return;
           }
+
+          let committed = 0;
           for (let courseId of courses) {
             // [skip final exam]
             if (courseId == 'finalExam') {
@@ -255,11 +392,17 @@ function showMenu() {
             }
             // start course
             if (!isNone(courseId)) {
-              startCourse(courseId);
+              startCourse(courseId, () => {
+                committed++;
+              });
             } else {
               console.debug('[!] 无法找到 `courseId`, 已跳过!');
             }
           }
+
+          checkDone(() => committed, _ => {
+            autoCompleteCourseDone = true;
+          });
         });
       }
     });
@@ -289,6 +432,8 @@ function showMenu() {
             showMessage(`年级 [${grade}] 所有课程都是完成状态, 已跳过!`, 'blue');
             return;
           }
+
+          let committed = 0;
           for (let courseId of courses) {
             // [skip final exam]
             if (courseId == 'finalExam') {
@@ -297,11 +442,17 @@ function showMenu() {
             }
             // start course
             if (!isNone(courseId)) {
-              startCourse(courseId);
+              startCourse(courseId, () => {
+                committed++;
+              });
             } else {
               console.debug('[!] 无法找到 `courseId`, 已跳过!');
             }
           }
+
+          checkDone(() => committed, _ => {
+            autoCompleteSelfCourseDone = true;
+          });
         });
       }
     }
@@ -379,6 +530,8 @@ function showMenu() {
       if (synced != 0) {
         if (synced == beforeSynced) {
           showMessage(`成功同步 ${synced} 个资源, 点赞 ${liked} 个!`, 'green');
+          autoCompleteCreditsDone = true;
+          GM_setValue('autoCompleteCreditsDone', true);
           clearInterval(checkSuccess);
         } else {
           beforeSynced = synced;
@@ -386,4 +539,26 @@ function showMenu() {
       }
     }, 500);
   }
+
+  autoComplete = () => {
+    for (let feature of features) {
+      showMessage(`已激活 ${feature.title}`, 'green');
+      feature.func();
+    }
+  }
+
+  // startFromDatas = (data) => {
+  //   GM_setValue('accounts', data.map(line => {
+  //     let account = line.账号;
+  //     let password = line.密码;
+  //     if (!isNone(account) && !isNone(password)) {
+  //       return { account, password };
+  //     } else {
+  //       console.debug(`[!] 读取行 [${line.__rowNum__}] 时找不到账号和密码，已跳过！`, line);
+  //       return;
+  //     }
+  //   }));
+  //   GM_setValue('isLogined', false);
+  //   location.pathname = '/';
+  // }
 })();
