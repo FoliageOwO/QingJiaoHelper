@@ -18,9 +18,9 @@
   + https://www.2-class.com/courses - 自动完成所有课程 (不包括期末考试)
   + https://www.2-class.com/selfCourse - 自动完成所有**自学**课程 (不包括考试)
   + https://www.2-class.com/admin/creditCenter - 自动获取所有可以获取的学分, 包括 `心理减压, 耕读学堂, 校园安全` 等等
-  + **注意: 你可以自定义开关对应功能 (点击油猴脚本图标 -> fuck_qingjiao -> 菜单 -> 功能开关), 关闭后当你访问就不会激活!**
+  + **注意: 你可以自定义开关对应功能 (点击油猴脚本图标 -> QingJiaoHelper -> 菜单 -> 功能开关), 关闭后当你访问就不会激活!**
 * 一键完成 + 领取学分
-  + 点击油猴脚本图标 -> fuck_qingjiao -> 菜单 -> 其他 -> 一键完成
+  + 点击油猴脚本图标 -> QingJiaoHelper -> 菜单 -> 其他 -> 一键完成
 
 ## 常见问题解答
 
