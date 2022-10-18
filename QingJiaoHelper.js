@@ -42,10 +42,10 @@ function isNone(anyObj) {
 function showMessage(text, color) {
   Toastify({
     text,
-    duration: 5 * 1000,
+    duration: 3 * 1000,
     newWindow: true,
     gravity: 'top',
-    position: 'right',
+    position: 'left',
     stopOnFocus: true,
     style: { background: color }
   }).showToast();
@@ -258,14 +258,7 @@ function showMenu() {
     },
     methods: {
       autoComplete() {
-        Dialog.DialogProgrammatic.confirm({
-          title: '你确定吗？',
-          message: '一次性请求过多 api 可能会导致出现 bug，虽然这个可以使用但是我并不保证能够正常工作，因此我建议你手动分多次激活。',
-          confirmText: '确定',
-          cancelText: '算了',
-          type: 'is-danger',
-          onConfirm: () => autoComplete()
-        });
+        autoComplete();
       },
 
       startFromDatas() {
@@ -381,7 +374,7 @@ function logout() {
             .map(j => j.courseId); // courseId => list
           console.debug(`年级 [${grade}] 可用的课程 (没学过的):`, courses);
           if (courses.length === 0) {
-            showMessage(`年级 [${grade}] 所有课程都是完成状态, 已跳过!`, 'blue');
+            console.debug(`[!] 年级 [${grade}] 所有课程都是完成状态, 已跳过!`);
             return;
           }
 
