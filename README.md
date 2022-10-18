@@ -1,17 +1,17 @@
-# fuck_qingjiao
+# QingJiaoHelper
 
-青骄第二课堂: 自动完成所有课程 + 每日领取学分
+青骄第二课堂小助手: 自动完成所有课程 + 每日领取学分
 
 ## 插件地址
 
-+ [Greasy Fork - fuck_qingjiao](https://greasyfork.org/zh-CN/scripts/452984-qingjiao)
-+ [GitHub - WindLeaf233/fuck_qingjiao](https://github.com/WindLeaf233/fuck_qingjiao/)
++ [Greasy Fork - QingJiaoHelper](https://greasyfork.org/zh-CN/scripts/452984-qingjiaohelper)
++ [GitHub - WindLeaf233/QingJiaoHelper](https://github.com/WindLeaf233/QingJiaoHelper/)
 
 ## 食用方法
 
 1. 安装这个脚本
 2. 选择一个方法激活功能 (见下面 **激活方法**)
-3. 所有的调试功能都在 devtools 控制台中, 成功/失败的消息会在右上角提示
+3. 所有的调试日志都在 devtools 控制台中, 成功/失败的消息会在右上角提示
 
 ## 激活方法
 * 手动跳转到对应的网址来激活对应功能
@@ -52,6 +52,9 @@
 + [ ] 设置完成自定义范围/数量的课程和手动完成课程
 
 ## 更新日志
+
+#### v0.2.6
+* [*] 更换脚本名字
 
 #### v0.2.5
 * [+] 添加菜单
