@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                 QingJiaoHelper
 // @namespace            http://tampermonkey.net/
-// @version              0.2.6
+// @version              0.2.7
 // @description          青骄第二课堂小助手: 自动完成所有课程 + 每日领取学分
 // @author               WindLeaf
 // @match                *://www.2-class.com/*
@@ -309,7 +309,7 @@ function showMenu() {
     data() {
       return {
         isOpen: -1,
-        version: 'v0.2.6',
+        version: 'v0.2.7',
         collapses: [
           { title: '功能开关' },
           { title: '批量导入' },
