@@ -115,7 +115,7 @@ function runWhenReady(readySelector, callback) {
   tryNow();
 }
 
-function startCourse(courseId, successCallback) {
+function getCourseAnswer(courseId, callback) {
   request('GET', `/exam/getTestPaperList?courseId=${courseId}`, resp => {
     let data = resp.data;
     let title = data.papaerTitle; // typo xD
@@ -124,13 +124,14 @@ function startCourse(courseId, successCallback) {
       let answers = testPaperList.map(column => column.answer);
       console.debug(`成功获取到课程 [${courseId}] 的数据: ${title}`);
       console.debug('成功获取到答案', answers);
-      commit(answers);
-    } else {
-      let errorMsg = data.errorMsg;
-      if (errorMsg !== '该课程课时考试已经完成') {
-        startCourse(courseId);
-      }
+      callback(answers);
     }
+  });
+}
+
+function startCourse(courseId, successCallback) {
+  getCourseAnswer(courseId, answers => {
+    commit(answers);
   });
 
   function commit(answers) {
@@ -189,9 +190,9 @@ function getGMValue(name, defaultValue) {
   return value;
 }
 
-let course = getGMValue('course', true);
-let selfCourse = getGMValue('selfCourse', true);
-let credits = getGMValue('credits', true);
+let course = getGMValue('course', false);
+let selfCourse = getGMValue('selfCourse', false);
+let credits = getGMValue('credits', false);
 let isLogined = getGMValue('isLogined', null);
 let loginedAccount = getGMValue('loginedAccount', '');
 let accounts = getGMValue('accounts', []);
@@ -641,6 +642,56 @@ function taskCredit() {
       showMessage(`已激活 ${feature.title}`, 'green');
       feature.func();
     }
+  }
+
+  // 手动完成
+  if (pathname.match(/\/courses\/exams\/(\d+)/)) {
+    let courseId = pathname.match(/(\d+)/g)[0];
+
+    function toDisplayAnswer(answerIndex) {
+      let alphas = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+      return alphas[answerIndex];
+    }
+
+    let started = false;
+    let count = 0;
+    function next(answers, btn=null) {
+      if (!started) {
+        runWhenReady('#app > div > div.home-container > div > div > div > div > div > div.exam-content-btnbox > button', element => {
+          started = true;
+          next(answers, element);
+        });
+      } else {
+        if (count > 0) {
+          btn = document.querySelector('#app > div > div.home-container > div > div > div > div > div > div.exam-content-btnbox > div > button.ant-btn-primary');
+        }
+
+        btn.onclick = () => {
+          setTimeout(() => next(answers, btn), 500);
+          return;
+        }
+  
+        let answer = answers.shift();
+        let selects = document.getElementsByClassName('exam-single-content-box');
+        console.debug(answer, selects);
+        answer = answer.split(',');
+        showMessage(`答案: ${toDisplayAnswer(answer)}`, 'green');
+        for (let answerIndex of answer) {
+          let selectElement = selects[answerIndex];
+          selectElement.click(); // emulate to select the answer
+        }
+        count++;
+      }
+    }
+
+    getCourseAnswer(courseId, answers => {
+      runWhenReady('#app > div > div.home-container > div > div > div > div > div > button', startButton => {
+        startButton.onclick = () => {
+          showMessage(`开始答题: ${courseId}`, 'blue');
+          next(answers);
+        };
+      });
+    });
   }
 
   // startFromDatas = (data) => {
