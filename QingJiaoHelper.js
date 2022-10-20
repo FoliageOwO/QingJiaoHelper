@@ -22,6 +22,7 @@
 // @require              https://unpkg.com/buefy/dist/components/dialog
 // @require              https://unpkg.com/buefy/dist/components/upload
 // @require              https://unpkg.com/buefy/dist/components/field
+// @require              https://unpkg.com/buefy/dist/components/checkbox
 // @require              https://cdn.bootcdn.net/ajax/libs/xlsx/0.18.5/xlsx.full.min.js
 // @resource toastifycss https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css
 // @resource buefycss    https://unpkg.com/buefy/dist/buefy.min.css
@@ -156,6 +157,13 @@ function startCourse(courseId, successCallback) {
   }
 }
 
+function getGrades(callback) {
+  request('GET', '/course/getHomepageGrade', resp => {
+    let grades = resp.data.map(it => it.value);
+    callback(grades);
+  });
+}
+
 function checkDone(getCommittedCallBack, allDoneCallBack) {
   let committed = getCommittedCallBack();
   let beforeCommitted = committed;
@@ -201,6 +209,12 @@ let resetStartFromDatas = () => {
   showMessage('重置成功！', 'green');
   location.pathname = '/';
 };
+
+let grades;
+getGrades(g => grades = g);
+
+let temp = GM_getValue('customGrades');
+let customGrades = isNone(temp) ? [] : temp;
 
 function showMenu() {
   let menucss = `.fqj-menu-container{position:fixed;z-index:9999;right:5%;top:1%;width:25%}`;
@@ -249,9 +263,18 @@ function showMenu() {
         </template>
         <div class="card-content">
           <div v-if="isOpen == 0">
-            <b-switch v-model="course" type="is-success" size="is-small">完成所有课程 (不包括考试)</b-switch><br/>
-            <b-switch class="fqj-card-content" v-model="selfCourse" type="is-success" size="is-small">完成所有自学课程 (不包括考试)</b-switch><br/>
-            <b-switch class="fqj-card-content" v-model="credits" type="is-success" size="is-small">获取每日学分</b-switch>
+            1. 完成所有课程 (不包括考试)<br/>
+            <b-switch v-model="course" type="is-success" size="is-small">跳转自动激活</b-switch><br/>
+            <b-checkbox v-for="(grade, index) of grades" :key="index" v-model="enabledGrades" :native-value="grade" @input="updateCourseGrades">{{ grade }}</b-checkbox>
+            <b-button type="is-success" @click="startCourse" size="is-small">开始</b-button><br/>
+
+            2. 完成所有自学课程 (不包括考试)<br/>
+            <b-switch class="fqj-card-content" v-model="selfCourse" type="is-success" size="is-small">跳转自动激活</b-switch><br/>
+            <b-button type="is-success" @click="startSelfCourse" size="is-small">开始</b-button><br/>
+
+            3. 获取每日学分<br/>
+            <b-switch class="fqj-card-content" v-model="credits" type="is-success" size="is-small">跳转自动激活</b-switch><br/>
+            <b-button type="is-success" @click="startCredits" size="is-small">开始</b-button>
           </div>
           <div v-if="isOpen == 1">
             <b-field class="file" type="is-info" :class="{'has-name': !!file}">
@@ -291,7 +314,9 @@ function showMenu() {
           { title: '批量导入' },
           { title: '其他' }
         ],
-        file: null
+        file: null,
+        grades: grades,
+        enabledGrades: customGrades
       }
     },
     computed: {
@@ -361,6 +386,25 @@ function showMenu() {
 
       closeMenu() {
         document.body.removeChild(container);
+      },
+
+      updateCourseGrades() {
+        GM_setValue('customGrades', this.enabledGrades);
+      },
+
+      startCourse() {
+        showMessage(`已激活 完成所有课程 (不包括考试)`, 'green');
+        taskCourses(this.enabledGrades);
+      },
+
+      startSelfCourse() {
+        showMessage(`已激活 完成所有自学课程 (不包括考试)`, 'green');
+        taskSelfCourses();
+      },
+
+      startCredits() {
+        showMessage(`已激活 获取每日学分`, 'green');
+        taskCredit();
       }
     }
   });
@@ -382,6 +426,169 @@ function logout() {
     GM_setValue('account', '');
     logoutButton.click(); // logout
   });
+}
+
+function taskCourses(ccustomGrades=null) {
+  getGrades(grades => {
+    let willGrades = (!isNone(ccustomGrades) || !isNone(customGrades)) ? (ccustomGrades || customGrades) : grades;
+    console.debug('获取年级列表', willGrades);
+    for (let grade of willGrades) {
+      // get courses
+      request('GET', `/course/getHomepageCourseList?grade=${grade}&pageSize=24&pageNo=1`, resp2 => {
+        let courses = resp2.data.list
+          .filter(k => !k.isFinish && k.title != '期末考试') // skip finished and final exam
+          .map(j => j.courseId); // courseId => list
+        console.debug(`年级 [${grade}] 可用的课程 (没学过的):`, courses);
+        if (courses.length === 0) {
+          console.debug(`[!] 年级 [${grade}] 所有课程都是完成状态, 已跳过!`);
+          return;
+        }
+
+        let committed = 0;
+        for (let courseId of courses) {
+          // [skip final exam]
+          if (courseId == 'finalExam') {
+            console.debug('已跳过期末考试!');
+            return;
+          }
+          // start course
+          if (!isNone(courseId)) {
+            startCourse(courseId, () => {
+              committed++;
+            });
+          } else {
+            console.debug('[!] 无法找到 `courseId`, 已跳过!');
+          }
+        }
+
+        checkDone(() => committed, _ => {
+          autoCompleteCourseDone = true;
+        });
+      });
+    }
+  });
+}
+
+function taskSelfCourses() {
+  // get all grades (bad method)
+  let grades = ['小学', '初中', '高中', '中职', '通用'];
+
+  console.debug('获取年级列表 (自学)', grades);
+  for (let grade of grades) {
+    request('GET', `/course/getHomepageCourseList?grade=自学&pageNo=1&pageSize=500&sort=&type=${grade}`, resp => {
+      let courses = resp.data.list
+        .filter(k => !k.isFinish && k.title != '期末考试') // skip finished and final exam
+        .map(j => j.courseId); // courseId => list
+        console.debug(`年级 [${grade}] 可用的课程 (自学) (没学过的):`, courses);
+      if (courses.length === 0) {
+        showMessage(`年级 [${grade}] 所有课程都是完成状态, 已跳过!`, 'blue');
+        return;
+      }
+
+      let committed = 0;
+      for (let courseId of courses) {
+        // [skip final exam]
+        if (courseId == 'finalExam') {
+          console.debug('已跳过期末考试!'); // seems that selfCourses don't have final exam
+          return;
+        }
+        // start course
+        if (!isNone(courseId)) {
+          startCourse(courseId, () => {
+            committed++;
+          });
+        } else {
+          console.debug('[!] 无法找到 `courseId`, 已跳过!');
+        }
+      }
+
+      checkDone(() => committed, _ => {
+        autoCompleteSelfCourseDone = true;
+      });
+    });
+  }
+}
+
+function taskCredit() {
+  // medal: 领取禁毒学子勋章
+  request('GET', '/medal/addMedal', medalResp => {
+    let data = medalResp.data;
+    let status = data.status;
+    let num = data.medalNum;
+    if (status) {
+      showMessage(`成功领取禁毒徽章 [${num}]!`, 'green');
+    } else {
+      console.debug(`[!] 无法领取徽章 (可能已领取过), 已跳过!`)
+    }
+  });
+
+  // resources: 心理减压, 耕读学堂 [耕读, 电影, 音乐, 体育, 美术, 自然, 公开课], 校园安全
+  let categorys = [
+    { name: 'public_good', tag: 'read' },
+    { name: 'ma_yun_recommend', tag: 'labour' }, // the `ma_yun_recommend` has lots of sub-categorys
+    { name: 'ma_yun_recommend', tag: 'movie' },
+    { name: 'ma_yun_recommend', tag: 'music' },
+    { name: 'ma_yun_recommend', tag: 'physicalEducation' },
+    { name: 'ma_yun_recommend', tag: 'arts' },
+    { name: 'ma_yun_recommend', tag: 'natural' },
+    { name: 'ma_yun_recommend', tag: 'publicWelfareFoundation' },
+    { name: 'school_safe', tag: 'safeVolunteer' }
+  ];
+  let synced = 0;
+  let liked = 0;
+
+  for (let category of categorys) {
+    request('POST', '/resource/getBeforeResourcesByCategoryName', resourcesResp => {
+      let resources = resourcesResp.data.list.map(it => {
+        return {
+          title: it.description, resourceId: it.resourceId
+        };
+      });
+
+      console.debug(`获取分类 ${category.name} 的资源`, resources);
+      for (let resource of resources) {
+        let resourceId = resource.resourceId;
+        let data = { resourceId, reqtoken };
+        // sync resource
+        request('POST', '/growth/sync/resource', resourcePostResp => {
+          let result = resourcePostResp.data.result;
+          if (result) {
+            console.debug(`成功同步资源 [${resourceId}]: ${resource.title}!`);
+            synced++;
+          } else {
+            console.debug(`[!] 同步资源 [${resourceId}] 失败, 已跳过!`);
+          }
+        }, data);
+
+        // like resource
+        request('POST', '/resource/likePC', resourceLikeResp => {
+          let count = resourceLikeResp.data;
+          let flag = resourceLikeResp.success;
+          let already_like = !$.isNumeric(count) && count.errorCode === 'ALREADY_like';
+          if ($.isNumeric(count) && flag) {
+            console.debug(`成功点赞资源 [${resourceId}]: ${count}!`);
+            liked++;
+          } else {
+            console.debug(`[!] 无法点赞资源 [${resourceId}], 是否已点赞: ${already_like}, 已跳过!`);
+          }
+        }, data);
+      }
+    }, { categoryName: category.name, pageNo: 1, pageSize: 100, reqtoken, tag: category.tag });
+  }
+
+  let beforeSynced = synced;
+  let checkSuccess = setInterval(() => {
+    if (synced != 0) {
+      if (synced == beforeSynced) {
+        showMessage(`成功同步 ${synced} 个资源, 点赞 ${liked} 个!`, 'green');
+        autoCompleteCreditsDone = true;
+        GM_setValue('autoCompleteCreditsDone', true);
+        clearInterval(checkSuccess);
+      } else {
+        beforeSynced = synced;
+      }
+    }
+  }, 500);
 }
 
 
@@ -427,179 +634,6 @@ function logout() {
       showMessage(`激活功能: ${feature.title}`, 'green');
       feature.func();
     }
-  }
-
-  function taskCourses() {
-    request('GET', '/course/getHomepageGrade', resp1 => {
-      let grades = resp1.data.map(it => it.value);
-      console.debug('获取年级列表', grades);
-      for (let grade of grades) {
-        // get courses
-        request('GET', `/course/getHomepageCourseList?grade=${grade}&pageSize=24&pageNo=1`, resp2 => {
-          let courses = resp2.data.list
-            .filter(k => !k.isFinish && k.title != '期末考试') // skip finished and final exam
-            .map(j => j.courseId); // courseId => list
-          console.debug(`年级 [${grade}] 可用的课程 (没学过的):`, courses);
-          if (courses.length === 0) {
-            console.debug(`[!] 年级 [${grade}] 所有课程都是完成状态, 已跳过!`);
-            return;
-          }
-
-          let committed = 0;
-          for (let courseId of courses) {
-            // [skip final exam]
-            if (courseId == 'finalExam') {
-              console.debug('已跳过期末考试!');
-              return;
-            }
-            // start course
-            if (!isNone(courseId)) {
-              startCourse(courseId, () => {
-                committed++;
-              });
-            } else {
-              console.debug('[!] 无法找到 `courseId`, 已跳过!');
-            }
-          }
-
-          checkDone(() => committed, _ => {
-            autoCompleteCourseDone = true;
-          });
-        });
-      }
-    });
-  }
-
-  function taskSelfCourses() {
-    // get all grades (bad method)
-    let gradesTabElements = [];
-    let timer = setInterval(() => {
-      gradesTabElements = document.getElementsByClassName('ant-tabs-tab');
-      if (gradesTabElements.length != 0) {
-        resolveGrades();
-      }
-    }, 500);
-
-    function resolveGrades() {
-      clearInterval(timer);
-      console.debug('获取年级列表 (自学)', gradesTabElements);
-      for (let element of gradesTabElements) {
-        let grade = element.innerText;
-        request('GET', `/course/getHomepageCourseList?grade=自学&pageNo=1&pageSize=500&sort=&type=${grade}`, resp => {
-          let courses = resp.data.list
-            .filter(k => !k.isFinish && k.title != '期末考试') // skip finished and final exam
-            .map(j => j.courseId); // courseId => list
-            console.debug(`年级 [${grade}] 可用的课程 (自学) (没学过的):`, courses);
-          if (courses.length === 0) {
-            showMessage(`年级 [${grade}] 所有课程都是完成状态, 已跳过!`, 'blue');
-            return;
-          }
-
-          let committed = 0;
-          for (let courseId of courses) {
-            // [skip final exam]
-            if (courseId == 'finalExam') {
-              console.debug('已跳过期末考试!'); // seems that selfCourses don't have final exam
-              return;
-            }
-            // start course
-            if (!isNone(courseId)) {
-              startCourse(courseId, () => {
-                committed++;
-              });
-            } else {
-              console.debug('[!] 无法找到 `courseId`, 已跳过!');
-            }
-          }
-
-          checkDone(() => committed, _ => {
-            autoCompleteSelfCourseDone = true;
-          });
-        });
-      }
-    }
-  }
-
-  function taskCredit() {
-    // medal: 领取禁毒学子勋章
-    request('GET', '/medal/addMedal', medalResp => {
-      let data = medalResp.data;
-      let status = data.status;
-      let num = data.medalNum;
-      if (status) {
-        showMessage(`成功领取禁毒徽章 [${num}]!`, 'green');
-      } else {
-        console.debug(`[!] 无法领取徽章 (可能已领取过), 已跳过!`)
-      }
-    });
-
-    // resources: 心理减压, 耕读学堂 [耕读, 电影, 音乐, 体育, 美术, 自然, 公开课], 校园安全
-    let categorys = [
-      { name: 'public_good', tag: 'read' },
-      { name: 'ma_yun_recommend', tag: 'labour' }, // the `ma_yun_recommend` has lots of sub-categorys
-      { name: 'ma_yun_recommend', tag: 'movie' },
-      { name: 'ma_yun_recommend', tag: 'music' },
-      { name: 'ma_yun_recommend', tag: 'physicalEducation' },
-      { name: 'ma_yun_recommend', tag: 'arts' },
-      { name: 'ma_yun_recommend', tag: 'natural' },
-      { name: 'ma_yun_recommend', tag: 'publicWelfareFoundation' },
-      { name: 'school_safe', tag: 'safeVolunteer' }
-    ];
-    let synced = 0;
-    let liked = 0;
-
-    for (let category of categorys) {
-      request('POST', '/resource/getBeforeResourcesByCategoryName', resourcesResp => {
-        let resources = resourcesResp.data.list.map(it => {
-          return {
-            title: it.description, resourceId: it.resourceId
-          };
-        });
-
-        console.debug(`获取分类 ${category.name} 的资源`, resources);
-        for (let resource of resources) {
-          let resourceId = resource.resourceId;
-          let data = { resourceId, reqtoken };
-          // sync resource
-          request('POST', '/growth/sync/resource', resourcePostResp => {
-            let result = resourcePostResp.data.result;
-            if (result) {
-              console.debug(`成功同步资源 [${resourceId}]: ${resource.title}!`);
-              synced++;
-            } else {
-              console.debug(`[!] 同步资源 [${resourceId}] 失败, 已跳过!`);
-            }
-          }, data);
-
-          // like resource
-          request('POST', '/resource/likePC', resourceLikeResp => {
-            let count = resourceLikeResp.data;
-            let flag = resourceLikeResp.success;
-            let already_like = !$.isNumeric(count) && count.errorCode === 'ALREADY_like';
-            if ($.isNumeric(count) && flag) {
-              console.debug(`成功点赞资源 [${resourceId}]: ${count}!`);
-              liked++;
-            } else {
-              console.debug(`[!] 无法点赞资源 [${resourceId}], 是否已点赞: ${already_like}, 已跳过!`);
-            }
-          }, data);
-        }
-      }, { categoryName: category.name, pageNo: 1, pageSize: 100, reqtoken, tag: category.tag });
-    }
-
-    let beforeSynced = synced;
-    let checkSuccess = setInterval(() => {
-      if (synced != 0) {
-        if (synced == beforeSynced) {
-          showMessage(`成功同步 ${synced} 个资源, 点赞 ${liked} 个!`, 'green');
-          autoCompleteCreditsDone = true;
-          GM_setValue('autoCompleteCreditsDone', true);
-          clearInterval(checkSuccess);
-        } else {
-          beforeSynced = synced;
-        }
-      }
-    }, 500);
   }
 
   autoComplete = () => {
