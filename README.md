@@ -1,5 +1,11 @@
 # QingJiaoHelper
 
+![](https://img.shields.io/greasyfork/v/452984?label=%E6%9C%80%E6%96%B0%E7%89%88%E6%9C%AC)
+![](https://img.shields.io/greasyfork/dd/452984?color=red&label=%E6%97%A5%E5%AE%89%E8%A3%85)
+![](https://img.shields.io/greasyfork/dt/452984?color=pink&label=%E6%80%BB%E5%AE%89%E8%A3%85)
+![](https://img.shields.io/greasyfork/l/452984?label=%E8%AE%B8%E5%8F%AF%E8%AF%81)
+![](https://img.shields.io/greasyfork/rating-count/452984?label=%E8%AF%84%E5%88%86)
+
 青骄第二课堂小助手: 自动完成所有课程 | 每日领取学分 | 课程自动填充答案
 
 ## 插件地址
