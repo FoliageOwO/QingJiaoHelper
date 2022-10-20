@@ -203,13 +203,13 @@ let resetStartFromDatas = () => {
 };
 
 function showMenu() {
-  let menucss = `.fqj-menu-container{position:fixed;z-index:9999;right:20px;top:10px}`;
+  let menucss = `.fqj-menu-container{position:fixed;z-index:9999;right:5%;top:1%;width:25%}`;
   GM_addStyle(menucss);
   
   let menuhtml = `<style>
   .fqj-menu {
     background-color: rgb(216, 216, 216);
-    height: 50%;
+    height: 100%;
     box-shadow: 7px 7px 5px #888888;
     border-radius: 10px;
     padding: 10px;
