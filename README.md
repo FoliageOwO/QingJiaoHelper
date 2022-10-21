@@ -10,7 +10,7 @@
 
 ## 插件地址
 
-**如果觉得还行的话请在 Github 上点个小星星吧 :)**
+**如果觉得还行的话请在 GitHub 上点个小星星吧 :)**
 
 + [Greasy Fork - QingJiaoHelper](https://greasyfork.org/zh-CN/scripts/452984-qingjiaohelper)
 + [GitHub - WindLeaf233/QingJiaoHelper](https://github.com/WindLeaf233/QingJiaoHelper/)
