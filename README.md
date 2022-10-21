@@ -84,7 +84,7 @@
 
 #### v0.2.8.1 (v0.2.8-patch1)
 * [+] 在课程视频界面添加跳过按钮
-* [!] 更新知识竞赛题库 ([题库来源](https://greasyfork.org/zh-CN/scripts/453457-lib42classnew)))
+* [!] 更新知识竞赛题库 ([题库来源](https://greasyfork.org/zh-CN/scripts/453457-lib42classnew))
 * [.] 更新外部库 cdn 地址, 压缩脚本大小
 
 #### v0.2.8
