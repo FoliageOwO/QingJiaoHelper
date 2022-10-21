@@ -81,8 +81,13 @@
 
 ## 更新日志
 
+#### v0.2.8.1 (v0.2.8-patch1)
+* [+] 在课程视频界面添加跳过按钮
+* [!] 更新知识竞赛题库 ([题库来源](https://greasyfork.org/zh-CN/scripts/453457-lib42classnew)))
+* [.] 更新外部库 cdn 地址, 压缩脚本大小
+
 #### v0.2.8
-* [+] 支持知识竞赛 (2022 版 [题库来源](https://greasyfork.org/zh-CN/scripts/453457-lib42classnew))
+* [+] 支持知识竞赛 (2022 版 [题库来源](https://greasyfork.org/zh-CN/scripts/453222-lib42classxin))
 * [+] 答案将显示题号
 * [!] 修复多选题答案显示错误
 * [!] 修复课程手动完成后报错
