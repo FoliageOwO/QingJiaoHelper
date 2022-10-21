@@ -679,32 +679,34 @@ function arrDiff(arr1, arr2) {
 
     let started = false;
     let count = 0;
-    function next(answers, btn=null) {
+    function next(size, answers, btn=null) {
       if (!started) {
         runWhenReady('#app > div > div.home-container > div > div > div > div > div > div.exam-content-btnbox > button', element => {
           started = true;
-          next(answers, element);
+          next(size, answers, element);
         });
       } else {
         if (count > 0) {
           btn = document.querySelector('#app > div > div.home-container > div > div > div > div > div > div.exam-content-btnbox > div > button.ant-btn-primary');
         }
 
-        btn.onclick = () => {
-          setTimeout(() => next(answers, btn), 500);
-          return;
+        if (count < size) {
+          btn.onclick = () => {
+            setTimeout(() => next(size, answers, btn), 500);
+            return;
+          }
+    
+          let answer = answers.shift().toString();
+          let selects = document.getElementsByClassName('exam-single-content-box');
+          console.debug(answer, selects);
+          answer = answer.split(',');
+          showMessage(`第 ${count + 1} 题答案: ${toDisplayAnswer(answer)}`, 'green');
+          for (let answerIndex of answer) {
+            let selectElement = selects[answerIndex];
+            selectElement.click(); // emulate to select the answer
+          }
+          count++;
         }
-  
-        let answer = answers.shift().toString();
-        let selects = document.getElementsByClassName('exam-single-content-box');
-        console.debug(answer, selects);
-        answer = answer.split(',');
-        showMessage(`第 ${count + 1} 题答案: ${toDisplayAnswer(answer)}`, 'green');
-        for (let answerIndex of answer) {
-          let selectElement = selects[answerIndex];
-          selectElement.click(); // emulate to select the answer
-        }
-        count++;
       }
     }
 
@@ -712,7 +714,7 @@ function arrDiff(arr1, arr2) {
       runWhenReady('#app > div > div.home-container > div > div > div > div > div > button', startButton => {
         startButton.onclick = () => {
           showMessage(`开始答题: ${courseId}`, 'blue');
-          next(answers);
+          next(answers.length, answers);
         };
       });
     });
