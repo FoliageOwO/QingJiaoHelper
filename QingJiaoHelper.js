@@ -14,7 +14,7 @@
 // @supportURL           https://github.com/WindLeaf233/QingJiaoHelper
 // @require              http://cdn.staticfile.org/jquery/3.6.1/jquery.min.js
 // @require              https://cdn.bootcdn.net/ajax/libs/toastify-js/1.12.0/toastify.min.js
-// @require              https://cdn.bootcdn.net/ajax/libs/vue/3.2.41/vue.global.min.js
+// @require              https://unpkg.com/vue@2.7.13/dist/vue.min.js
 // @require              https://cdn.bootcdn.net/ajax/libs/buefy/0.9.22/components/tag/index.min.js
 // @require              https://cdn.bootcdn.net/ajax/libs/buefy/0.9.22/components/collapse/index.min.js
 // @require              https://cdn.bootcdn.net/ajax/libs/buefy/0.9.22/components/switch/index.min.js
