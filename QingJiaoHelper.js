@@ -13,20 +13,20 @@
 // @license              GPL-3.0
 // @supportURL           https://github.com/WindLeaf233/QingJiaoHelper
 // @require              http://cdn.staticfile.org/jquery/3.6.1/jquery.min.js
-// @require              https://cdn.bootcdn.net/ajax/libs/toastify-js/1.12.0/toastify.js
-// @require              https://unpkg.com/vue@2
-// @require              https://unpkg.com/buefy/dist/components/tag
-// @require              https://unpkg.com/buefy/dist/components/collapse
-// @require              https://unpkg.com/buefy/dist/components/switch
-// @require              https://unpkg.com/buefy/dist/components/button
-// @require              https://unpkg.com/buefy/dist/components/dialog
-// @require              https://unpkg.com/buefy/dist/components/upload
-// @require              https://unpkg.com/buefy/dist/components/field
-// @require              https://unpkg.com/buefy/dist/components/checkbox
-// @require              https://cdn.bootcdn.net/ajax/libs/xlsx/0.18.5/xlsx.full.min.js
+// @require              https://cdn.bootcdn.net/ajax/libs/toastify-js/1.12.0/toastify.min.js
+// @require              https://cdn.bootcdn.net/ajax/libs/vue/3.2.41/vue.global.min.js
+// @require              https://cdn.bootcdn.net/ajax/libs/buefy/0.9.22/components/tag/index.min.js
+// @require              https://cdn.bootcdn.net/ajax/libs/buefy/0.9.22/components/collapse/index.min.js
+// @require              https://cdn.bootcdn.net/ajax/libs/buefy/0.9.22/components/switch/index.min.js
+// @require              https://cdn.bootcdn.net/ajax/libs/buefy/0.9.22/components/button/index.min.js
+// @require              https://cdn.bootcdn.net/ajax/libs/buefy/0.9.22/components/dialog/index.min.js
+// @require              https://cdn.bootcdn.net/ajax/libs/buefy/0.9.22/components/upload/index.min.js
+// @require              https://cdn.bootcdn.net/ajax/libs/buefy/0.9.22/components/field/index.min.js
+// @require              https://cdn.bootcdn.net/ajax/libs/buefy/0.9.22/components/checkbox/index.min.js
+// @require              https://cdn.bootcdn.net/ajax/libs/xlsx/0.18.5/xlsx.mini.min.js
 // @require              https://greasyfork.org/scripts/453222-lib42classxin/code/lib42classxin.js?version=1105974
 // @resource toastifycss https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css
-// @resource buefycss    https://unpkg.com/buefy/dist/buefy.min.css
+// @resource buefycss    https://cdn.bootcdn.net/ajax/libs/buefy/0.9.22/buefy.min.css
 // ==/UserScript==
 
 'use strict';
