@@ -6,7 +6,7 @@
 ![](https://img.shields.io/greasyfork/l/452984?label=%E8%AE%B8%E5%8F%AF%E8%AF%81)
 ![](https://img.shields.io/greasyfork/rating-count/452984?label=%E8%AF%84%E5%88%86)
 
-青骄第二课堂小助手: 自动完成所有课程 | 每日领取学分 | 课程自动填充答案
+青骄第二课堂小助手: 2022 知识竞赛 | 自动完成课程 | 每日领取学分 | 课程自动填充答案
 
 ## 插件地址
 

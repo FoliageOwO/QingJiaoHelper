@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name                 QingJiaoHelper
 // @namespace            http://tampermonkey.net/
-// @version              0.2.7
-// @description          青骄第二课堂小助手: 自动完成所有课程 | 每日领取学分 | 课程自动填充答案
+// @version              0.2.8
+// @description          青骄第二课堂小助手: 2022 知识竞赛 | 自动完成课程 | 每日领取学分 | 课程自动填充答案
 // @author               WindLeaf
 // @match                *://www.2-class.com/*
 // @grant                GM_addStyle
@@ -296,7 +296,7 @@ function showMenu() {
     </div>
   </div>
   <div class="fqj-menu-item">
-    作者：WindLeaf
+    作者: WindLeaf
     <b-button size="is-small" type="is-danger" @click="closeMenu">关闭</b-button>
   </div>
 </div>`;
@@ -310,7 +310,7 @@ function showMenu() {
     data() {
       return {
         isOpen: -1,
-        version: 'v0.2.7',
+        version: 'v0.2.8',
         collapses: [
           { title: '功能开关' },
           { title: '批量导入' },
