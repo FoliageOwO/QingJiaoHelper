@@ -24,7 +24,7 @@
 // @require              https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/buefy/0.9.17/components/field/index.min.js
 // @require              https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/buefy/0.9.17/components/checkbox/index.min.js
 // @require              https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/xlsx/0.18.2/xlsx.mini.min.js
-// @require              https://greasyfork.org/scripts/453222-lib42classxin/code/lib42classxin.js?version=1105974
+// @require              https://greasyfork.org/scripts/453457-lib42classnew/code/lib42classnew%EF%BD%9E.js?version=1107451
 // @resource toastifycss https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/toastify-js/1.11.2/toastify.min.css
 // @resource buefycss    https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/buefy/0.9.17/buefy.min.css
 // ==/UserScript==
