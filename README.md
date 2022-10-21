@@ -10,6 +10,8 @@
 
 ## 插件地址
 
+**如果觉得还行的话请在 Github 上点个小星星吧 :)**
+
 + [Greasy Fork - QingJiaoHelper](https://greasyfork.org/zh-CN/scripts/452984-qingjiaohelper)
 + [GitHub - WindLeaf233/QingJiaoHelper](https://github.com/WindLeaf233/QingJiaoHelper/)
 
@@ -39,9 +41,7 @@
 
 + **是否支持批量导入账号并批量完成**
 
-目前版本还未实现, 由于青骄第二课堂更新了 `nvc` 无痕验证 (具体见 [阿里云验证码功能概述](https://help.aliyun.com/document_detail/122071.html)), 每次调用 `api` 时都需要多传一个 `nvcVal` 参数, 而这个参数不好拿到, 所以就登录不了
-
-*我正在尝试使用别的方法登录*
+目前版本还未实现, 由于青骄第二课堂更新了 `nvc` 无痕验证 (具体见 [阿里云验证码功能概述](https://help.aliyun.com/document_detail/122071.html)), 目前并没有好的解决方案
 
 + **支持知识竞赛/期末考试吗**
 
