@@ -12,21 +12,21 @@
 // @grant                GM_setValue
 // @license              GPL-3.0
 // @supportURL           https://github.com/WindLeaf233/QingJiaoHelper
-// @require              http://cdn.staticfile.org/jquery/3.6.1/jquery.min.js
-// @require              https://cdn.bootcdn.net/ajax/libs/toastify-js/1.12.0/toastify.min.js
-// @require              https://unpkg.com/vue@2.7.13/dist/vue.min.js
-// @require              https://cdn.bootcdn.net/ajax/libs/buefy/0.9.22/components/tag/index.min.js
-// @require              https://cdn.bootcdn.net/ajax/libs/buefy/0.9.22/components/collapse/index.min.js
-// @require              https://cdn.bootcdn.net/ajax/libs/buefy/0.9.22/components/switch/index.min.js
-// @require              https://cdn.bootcdn.net/ajax/libs/buefy/0.9.22/components/button/index.min.js
-// @require              https://cdn.bootcdn.net/ajax/libs/buefy/0.9.22/components/dialog/index.min.js
-// @require              https://cdn.bootcdn.net/ajax/libs/buefy/0.9.22/components/upload/index.min.js
-// @require              https://cdn.bootcdn.net/ajax/libs/buefy/0.9.22/components/field/index.min.js
-// @require              https://cdn.bootcdn.net/ajax/libs/buefy/0.9.22/components/checkbox/index.min.js
-// @require              https://cdn.bootcdn.net/ajax/libs/xlsx/0.18.5/xlsx.mini.min.js
+// @require              https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/jquery/3.6.0/jquery.min.js
+// @require              https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/toastify-js/1.11.2/toastify.min.js
+// @require              https://lf9-cdn-tos.bytecdntp.com/cdn/expire-1-M/vue/2.6.14/vue.min.js
+// @require              https://lf9-cdn-tos.bytecdntp.com/cdn/expire-1-M/buefy/0.9.17/components/tag/index.min.js
+// @require              https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/buefy/0.9.17/components/collapse/index.min.js
+// @require              https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/buefy/0.9.17/components/switch/index.min.js
+// @require              https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/buefy/0.9.17/components/button/index.min.js
+// @require              https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/buefy/0.9.17/components/dialog/index.min.js
+// @require              https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/buefy/0.9.17/components/upload/index.min.js
+// @require              https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/buefy/0.9.17/components/field/index.min.js
+// @require              https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/buefy/0.9.17/components/checkbox/index.min.js
+// @require              https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/xlsx/0.18.2/xlsx.mini.min.js
 // @require              https://greasyfork.org/scripts/453222-lib42classxin/code/lib42classxin.js?version=1105974
-// @resource toastifycss https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css
-// @resource buefycss    https://cdn.bootcdn.net/ajax/libs/buefy/0.9.22/buefy.min.css
+// @resource toastifycss https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/toastify-js/1.11.2/toastify.min.css
+// @resource buefycss    https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/buefy/0.9.17/buefy.min.css
 // ==/UserScript==
 
 'use strict';
