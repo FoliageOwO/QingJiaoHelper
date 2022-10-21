@@ -694,7 +694,7 @@ function arrDiff(arr1, arr2) {
         let selects = document.getElementsByClassName('exam-single-content-box');
         console.debug(answer, selects);
         answer = answer.split(',');
-        showMessage(`答案: ${toDisplayAnswer(answer)}`, 'green');
+        showMessage(`第 ${count + 1} 题答案: ${toDisplayAnswer(answer)}`, 'green');
         for (let answerIndex of answer) {
           let selectElement = selects[answerIndex];
           selectElement.click(); // emulate to select the answer
@@ -779,7 +779,7 @@ function arrDiff(arr1, arr2) {
           let answer = answers.find(it => removeSpaces(it.question) == question) || fuzzyFind(question);
           let selects = document.getElementsByClassName('exam-single-content-box');
           console.debug(answer, selects);
-          showMessage(`答案: ${answer.answer}`, 'green');
+          showMessage(`第 ${count + 1} 题答案: ${answer.answer}`, 'green');
           for (let answerIndex of answer.answerIndex) {
             let selectElement = selects[answerIndex];
             selectElement.click(); // emulate to select the answer
