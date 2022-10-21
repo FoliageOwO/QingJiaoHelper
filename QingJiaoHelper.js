@@ -804,6 +804,13 @@ function arrDiff(arr1, arr2) {
     });
   }
 
+  // 课程视频跳过
+  if (pathname.match(/\/courses\/(\d+)/)) {
+    runWhenReady('#app > div > div.home-container > div > div > div.course-title-box > div > a > span > button', btn => {
+      btn.disabled = false;
+    });
+  }
+
   // startFromDatas = (data) => {
   //   GM_setValue('accounts', data.map(line => {
   //     let account = line.账号;
