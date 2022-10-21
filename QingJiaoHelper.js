@@ -594,8 +594,13 @@ function taskCredit() {
 }
 
 let alphas = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-function toDisplayAnswer(answerIndex) {
-  return alphas[answerIndex];
+function toDisplayAnswer(answerList) {
+  let result = '';
+  for (let answer of answerList) {
+    let index = Number(answer);
+    result = result + alphas[index];
+  }
+  return result;
 }
 
 function fromDisplayAnswers(answerList) {
@@ -690,7 +695,7 @@ function arrDiff(arr1, arr2) {
           return;
         }
   
-        let answer = answers.shift();
+        let answer = answers.shift().toString();
         let selects = document.getElementsByClassName('exam-single-content-box');
         console.debug(answer, selects);
         answer = answer.split(',');
