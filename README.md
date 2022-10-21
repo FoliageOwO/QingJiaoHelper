@@ -78,7 +78,7 @@
 ## 更新日志
 
 #### v0.2.8
-* [+] 支持知识竞赛 (2022 版 [题库来源](https://greasyfork.org/zh-CN/scripts/453222-lib42classxin))
+* [+] 支持知识竞赛 (2022 版 [题库来源](https://greasyfork.org/zh-CN/scripts/453457-lib42classnew))
 * [+] 答案将显示题号
 * [!] 修复多选题答案显示错误
 * [!] 修复课程手动完成后报错
