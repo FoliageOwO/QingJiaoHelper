@@ -78,6 +78,7 @@
 ## 特别感谢
 
 * [HF0920](https://greasyfork.org/zh-CN/users/971958-hf0920) - 提供账号测试知识竞赛, 编写题库
+* [GooGuJiang](https://github.com/GooGuJiang) - 更换脚本外部库 cdn
 
 ## 更新日志
 
