@@ -226,9 +226,10 @@ function showMenu() {
   .fqj-menu {
     background-color: rgb(216, 216, 216);
     height: 100%;
-    box-shadow: 7px 7px 5px #888888;
+    box-shadow: 1px 1px 10px #909090;
     border-radius: 10px;
     padding: 10px;
+    user-select: none;
   }
   
   .fqj-menu-item {
@@ -248,12 +249,32 @@ function showMenu() {
   .fqj-card-content {
     padding-top: 10px;
   }
+  .fqj-menu-item > div > .collapse{
+    margin-top: 5px;
+  }
+  .fqj-menu-item>span.tag.is-success.is-rounded{
+    border-radius: 15px;
+    height: 10%;
+    float: right;
+    margin-top: 5px;
+  }
+  .closecss > span {
+    margin:1px;
+  }
+  .closecss {
+    float: right;
+    margin-top: -61px;
+    margin-right: -4px;
+
+  }
 </style>
 
 <div class="fqj-menu" id="fqj-app">
   <div class="fqj-center fqj-menu-item">
     <a class="fqj-title">QingJiaoHelper</a>
-    <b-tag rounded type="is-success">{{ version }}</b-tag>
+  </div>
+  <div id="close-js">
+    <b-button size="is-small" class="closecss" type="is-danger" @click="closeMenu">X</b-button>
   </div>
   <div class="fqj-menu-item">
     <div>
@@ -297,7 +318,7 @@ function showMenu() {
   </div>
   <div class="fqj-menu-item">
     作者: WindLeaf
-    <b-button size="is-small" type="is-danger" @click="closeMenu">关闭</b-button>
+    <b-tag rounded  type="is-success">{{ version }}</b-tag>
   </div>
 </div>`;
   let container = document.createElement('div');
