@@ -24,6 +24,7 @@
 // @require              https://unpkg.com/buefy/dist/components/field
 // @require              https://unpkg.com/buefy/dist/components/checkbox
 // @require              https://cdn.bootcdn.net/ajax/libs/xlsx/0.18.5/xlsx.full.min.js
+// @require              https://greasyfork.org/scripts/453222-lib42classxin/code/lib42classxin.js?version=1105974
 // @resource toastifycss https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css
 // @resource buefycss    https://unpkg.com/buefy/dist/buefy.min.css
 // ==/UserScript==
@@ -592,6 +593,29 @@ function taskCredit() {
   }, 500);
 }
 
+let alphas = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+function toDisplayAnswer(answerIndex) {
+  return alphas[answerIndex];
+}
+
+function fromDisplayAnswers(answerList) {
+  let result = [];
+  for (let answer of answerList) {
+    result.push(alphas.indexOf(answer));
+  }
+  return result;
+}
+
+function removeSpaces(str) {
+  return str.replace(/\s*/g, '');
+}
+
+function arrDiff(arr1, arr2) {
+  return arr1.concat(arr2).filter((v, _, arr) => {
+    return arr.indexOf(v) === arr.lastIndexOf(v);
+  });
+}
+
 
 (function() {
   // script pre-loads
@@ -648,11 +672,6 @@ function taskCredit() {
   if (pathname.match(/\/courses\/exams\/(\d+)/)) {
     let courseId = pathname.match(/(\d+)/g)[0];
 
-    function toDisplayAnswer(answerIndex) {
-      let alphas = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-      return alphas[answerIndex];
-    }
-
     let started = false;
     let count = 0;
     function next(answers, btn=null) {
@@ -691,6 +710,90 @@ function taskCredit() {
           next(answers);
         };
       });
+    });
+  }
+
+  // 知识禁赛 2022
+  if (pathname === '/competition') {
+    let answers = [];
+    for (let primary of libs.libPrimarySchool) {
+      let splited = primary.answer.split('').map(k => k.toUpperCase());
+      answers.push({
+        question: primary.question,
+        answer: splited,
+        answerIndex: fromDisplayAnswers(splited)
+      });
+    }
+    for (let middle of libs.libMiddleSchool) {
+      let splited = middle.answer.split('').map(k => k.toUpperCase());
+      answers.push({
+        question: middle.question,
+        answer: splited,
+        answerIndex: fromDisplayAnswers(splited)
+      });
+    }
+
+    console.debug(answers);
+
+    let started = false;
+    let count = 0;
+    function next(answers, btn=null) {
+      runWhenReady('.exam-content-question', questionElement => {
+        let question = questionElement.innerText;
+        question = removeSpaces(question.split('\n')[0]); // get the first line
+        console.debug(question);
+
+        if (!started) {
+          runWhenReady('#app > div > div.home-container > div > div > div.competiotion-exam-box-all > div.exam-box > div.competition-sub > button', element => {
+            started = true;
+            next(answers, element);
+          });
+        } else {
+          if (count > 0) {
+            btn = document.querySelector('#app > div > div.home-container > div > div > div.competiotion-exam-box-all > div.exam-box > div.competition-sub > button.ant-btn.ant-btn-primary');
+          }
+  
+          btn.onclick = () => {
+            setTimeout(() => next(answers, btn), 500);
+            return;
+          }
+
+          // 模糊匹配
+          function fuzzyFind(question) {
+            let arr = question.split('');
+            let len = arr.length;
+            let pers = [];
+            for (let k of answers) {
+              let karr = k.question.split('');
+              let diff = arrDiff(arr, karr);
+              let diffLen = diff.length;
+              let per = diffLen / len;
+              pers.push({ question: k.question, unconfidence: per, answer: k });
+            }
+            let confidenceQuestion = pers.sort((a, b) => a.unconfidence - b.unconfidence)[0];
+            let answer = confidenceQuestion.answer;
+            console.debug(`模糊匹配 "${question}" ->`, confidenceQuestion);
+            return answer;
+          }
+  
+          let answer = answers.find(it => removeSpaces(it.question) == question) || fuzzyFind(question);
+          let selects = document.getElementsByClassName('exam-single-content-box');
+          console.debug(answer, selects);
+          showMessage(`答案: ${answer.answer}`, 'green');
+          for (let answerIndex of answer.answerIndex) {
+            let selectElement = selects[answerIndex];
+            selectElement.click(); // emulate to select the answer
+          }
+          count++;
+        }
+      });
+    }
+
+    runWhenReady('#app > div > div.home-container > div > div > div.competiotion-exam-box-all > div.exam-box > div > div.exam_content_bottom_btn > button', startButton => {
+      startButton.onclick = () => {
+        showMessage(`开始知识禁赛答题`, 'pink');
+        next(answers);
+      };
     });
   }
 
