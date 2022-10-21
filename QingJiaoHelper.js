@@ -720,7 +720,7 @@ function arrDiff(arr1, arr2) {
     });
   }
 
-  // 知识禁赛 2022
+  // 知识竞赛 2022
   if (pathname === '/competition') {
     let answers = [];
     for (let primary of libs.libPrimarySchool) {
