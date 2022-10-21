@@ -1,0 +1,40 @@
+fqj-menu {
+    background-color: rgb(216, 216, 216);
+    height: 100%;
+    box-shadow: 7px 7px 5px #909090;
+    border-radius: 10px;
+    padding: 10px;
+    user-select: none;
+  }
+  
+  .fqj-menu-item {
+    margin: 10px;
+  }
+  
+  .fqj-center {
+    text-align: center;
+    align-items: center;
+  }
+  
+  .fqj-title {
+    font-size: 25px;
+    font-weight: bold;
+  }
+  
+  .fqj-card-content {
+    padding-top: 10px;
+  }
+
+  .fqj-menu-item > div > .collapse{
+    margin-top: 5px;
+  }
+  span.tag.is-success.is-rounded{
+    border-radius: 15px;
+    height: 10%;
+    float: right;
+    margin-top: 5px;
+  }
+  #closecss > span {
+    font-size: 20px;
+    float: right;
+  }
