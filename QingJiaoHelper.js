@@ -806,8 +806,19 @@ function arrDiff(arr1, arr2) {
 
   // 课程视频跳过
   if (pathname.match(/\/courses\/(\d+)/)) {
-    runWhenReady('#app > div > div.home-container > div > div > div.course-title-box > div > a > span > button', btn => {
-      btn.disabled = false;
+    let courseId = pathname.match(/(\d+)/g)[0];
+    runWhenReady('#app > div > div.home-container > div > div > div.course-title-box > div > a > span', span => {
+      span.style.display = 'inline-flex';
+      let element = document.createElement('button');
+      element.type = 'button';
+      element.classList = 'ant-btn ant-btn-danger ant-btn-lg';
+      let skipSpan = document.createElement('span');
+      skipSpan.innerText = '跳过';
+      element.appendChild(skipSpan);
+      element.onclick = () => {
+        location.href = `/courses/exams/${courseId}`;
+      };
+      span.appendChild(element);
     });
   }
 
