@@ -786,6 +786,12 @@ function arrDiff(arr1, arr2) {
             return;
           }
 
+          // 精确匹配
+          function find(question) {
+            let result = answers.find(it => it.removeSpaces(it.question) == question);
+            return { answer: result, question };
+          }
+
           // 模糊匹配
           function fuzzyFind(question) {
             let arr = question.split('');
@@ -801,13 +807,13 @@ function arrDiff(arr1, arr2) {
             let confidenceQuestion = pers.sort((a, b) => a.unconfidence - b.unconfidence)[0];
             let answer = confidenceQuestion.answer;
             console.debug(`模糊匹配 "${question}" ->`, confidenceQuestion);
-            return answer;
+            return { answer, question: confidenceQuestion };
           }
   
-          let answer = answers.find(it => removeSpaces(it.question) == question) || fuzzyFind(question);
+          let { answer, question } = find(question) || fuzzyFind(question);
           let selects = document.getElementsByClassName('exam-single-content-box');
           console.debug(answer, selects);
-          showMessage(`第 ${count + 1} 题答案: ${answer.answer}`, 'green');
+          showMessage(`${question}\n第 ${count + 1} 题答案: ${answer.answer}`, 'green');
           for (let answerIndex of answer.answerIndex) {
             let selectElement = selects[answerIndex];
             selectElement.click(); // emulate to select the answer
