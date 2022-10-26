@@ -31,6 +31,8 @@
 
 'use strict';
 
+const version = 'v0.2.8.1';
+
 if (isNone($.ajax) || isNone($.isNumeric)) {
   showMessage('无法找到脚本所需的 jQuery 函数!', 'red');
   return;
@@ -331,7 +333,7 @@ function showMenu() {
     data() {
       return {
         isOpen: -1,
-        version: 'v0.2.8.1',
+        version: version,
         collapses: [
           { title: '功能开关' },
           { title: '批量导入' },
@@ -648,6 +650,8 @@ function arrDiff(arr1, arr2) {
   GM_addStyle(GM_getResourceText('toastifycss')); // apply toastifycss style file
   GM_addStyle(GM_getResourceText('buefycss')); // apply buefy style file
   GM_registerMenuCommand('菜单', showMenu); // register menu
+
+  showMessage(`欢迎使用!\n当前版本: ${version}`, 'green');
 
   // if (isLogined === true) {
   //   autoComplete();
