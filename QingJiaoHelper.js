@@ -453,6 +453,16 @@ function logout() {
   });
 }
 
+function likeResource(data, callback) {
+  request('POST', '/resource/likePC', resp => callback(resp), data);
+}
+
+function dislikeResource(data, callback) {
+  // request('POST', '/resource/likePC', resp => callback(resp), data);
+  // todo
+  callback(null);
+}
+
 function taskCourses(ccustomGrades=null) {
   getGrades(grades => {
     let willGrades = (!isNone(ccustomGrades) || !isNone(customGrades)) ? (ccustomGrades || customGrades) : grades;
@@ -586,17 +596,17 @@ function taskCredit() {
         }, data);
 
         // like resource
-        request('POST', '/resource/likePC', resourceLikeResp => {
+        likeResource(data, resourceLikeResp => {
           let count = resourceLikeResp.data;
-          let flag = resourceLikeResp.success;
-          let already_like = !$.isNumeric(count) && count.errorCode === 'ALREADY_like';
-          if ($.isNumeric(count) && flag) {
-            console.debug(`成功点赞资源 [${resourceId}]: ${count}!`);
-            liked++;
-          } else {
-            console.debug(`[!] 无法点赞资源 [${resourceId}], 是否已点赞: ${already_like}, 已跳过!`);
-          }
-        }, data);
+            let flag = resourceLikeResp.success;
+            let already_like = !$.isNumeric(count) && count.errorCode === 'ALREADY_like';
+            if ($.isNumeric(count) && flag) {
+              console.debug(`成功点赞资源 [${resourceId}]: ${count}!`);
+              liked++;
+            } else {
+              dislikeResource(data, _ => likeResource());
+            }
+        });
       }
     }, { categoryName: category.name, pageNo: 1, pageSize: 100, reqtoken, tag: category.tag });
   }
