@@ -462,10 +462,8 @@ function likeResource(data, callback) {
   request('POST', '/resource/likePC', resp => callback(resp), data);
 }
 
-function dislikeResource(data, callback) {
-  // request('POST', '/resource/likePC', resp => callback(resp), data);
-  // todo
-  callback(null);
+function unlikeResource(data, callback) {
+  request('POST', '/resource/unLikePC', resp => callback(resp), data);
 }
 
 function getCoursesByGrade(grade, callback) {
@@ -612,7 +610,12 @@ function taskCredit() {
               console.debug(`成功点赞资源 [${resourceId}]: ${count}!`);
               liked++;
             } else {
-              dislikeResource(data, _ => likeResource());
+              if (already_like) {
+                unlikeResource(data, _ => likeResource());
+                console.debug(`成功重新点赞 [${resourceId}]!`);
+              } else {
+                console.error(`点赞失败: [${resourceId}]!`);
+              } 
             }
         });
       }
