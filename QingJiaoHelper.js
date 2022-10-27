@@ -85,7 +85,10 @@ function processSiteScript() {
 
 processSiteScript();
 const reqtoken = window.__DATA__.reqtoken;
-const gradeName = window.__DATA__.userInfo.department.gradeName;
+const userInfo = window.__DATA__.userInfo;
+const gradeName = JSON.stringify(userInfo) !== '{}'
+  ? userInfo.department.gradeName
+  : showMessage('你还没有登录!', 'red');
 const location = document.location;
 const pathname = location.pathname;
 
@@ -764,8 +767,12 @@ function arrDiff(arr1, arr2) {
         showMessage('已加载小学组题库!', 'green');
         return libs.primary;
       } : () => {
-        showMessage('已加载中学组题库!', 'green')
-        return libs.middle;
+        if (!isNone(gradeName)) {
+          showMessage('已加载中学组题库!', 'green')
+          return libs.middle;
+        } else {
+          return [];
+        }
       };
     for (let q of getLib()) {
       let splited = q.answer.split('').map(k => k.toUpperCase());
