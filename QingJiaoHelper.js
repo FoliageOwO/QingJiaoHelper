@@ -130,7 +130,7 @@ function getCourseAnswer(courseId, callback) {
   getTestPaperList(courseId, testPaperList => {
     if (!isNone(testPaperList)) {
       let answers = testPaperList.map(column => column.answer);
-      console.debug(`成功获取到课程 [${courseId}] 的数据: ${title}`);
+      console.debug(`成功获取到课程 [${courseId}] 的数据`);
       console.debug('成功获取到答案', answers);
       callback(answers);
     }
