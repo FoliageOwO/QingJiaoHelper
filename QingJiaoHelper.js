@@ -24,7 +24,7 @@
 // @require              https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/buefy/0.9.17/components/field/index.min.js
 // @require              https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/buefy/0.9.17/components/checkbox/index.min.js
 // @require              https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/xlsx/0.18.2/xlsx.mini.min.js
-// @require              https://greasyfork.org/scripts/453457-lib42classnew/code/lib42classnew%EF%BD%9E.js?version=1107451
+// @require              https://greasyfork.org/scripts/453791-lib2class/code/lib2class.js?version=1109858
 // @resource toastifycss https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/toastify-js/1.11.2/toastify.min.css
 // @resource buefycss    https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/buefy/0.9.17/buefy.min.css
 // ==/UserScript==
@@ -85,6 +85,7 @@ function processSiteScript() {
 
 processSiteScript();
 const reqtoken = window.__DATA__.reqtoken;
+const gradeName = window.__DATA__.userInfo.department.gradeName;
 const location = document.location;
 const pathname = location.pathname;
 
@@ -758,18 +759,18 @@ function arrDiff(arr1, arr2) {
   // 知识竞赛 2022
   if (pathname === '/competition') {
     let answers = [];
-    for (let primary of libs.libPrimarySchool) {
-      let splited = primary.answer.split('').map(k => k.toUpperCase());
+    let getLib = ['一年级', '二年级', '三年级', '四年级', '五年级', '六年级'].indexOf(gradeName) != -1
+      ? () => {
+        showMessage('已加载小学组题库!', 'green');
+        return libs.primary;
+      } : () => {
+        showMessage('已加载中学组题库!', 'green')
+        return libs.middle;
+      };
+    for (let q of getLib()) {
+      let splited = q.answer.split('').map(k => k.toUpperCase());
       answers.push({
-        question: primary.question,
-        answer: splited,
-        answerIndex: fromDisplayAnswers(splited)
-      });
-    }
-    for (let middle of libs.libMiddleSchool) {
-      let splited = middle.answer.split('').map(k => k.toUpperCase());
-      answers.push({
-        question: middle.question,
+        question: q.question,
         answer: splited,
         answerIndex: fromDisplayAnswers(splited)
       });
