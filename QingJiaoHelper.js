@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                 QingJiaoHelper
 // @namespace            http://tampermonkey.net/
-// @version              0.2.8.1
+// @version              0.2.8.2
 // @description          青骄第二课堂小助手: 2022 知识竞赛 | 自动完成课程 | 每日领取学分 | 课程自动填充答案
 // @author               WindLeaf
 // @match                *://www.2-class.com/*
@@ -31,7 +31,7 @@
 
 'use strict';
 
-const version = 'v0.2.8.1';
+const version = 'v0.2.8.2';
 
 if (isNone($.ajax) || isNone($.isNumeric)) {
   showMessage('无法找到脚本所需的 jQuery 函数!', 'red');
