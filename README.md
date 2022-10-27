@@ -78,7 +78,7 @@
 ## 特别感谢
 
 * [HF0920](https://greasyfork.org/zh-CN/users/971958-hf0920) - 提供账号测试
-* [GooGuJiang](https://github.com/GooGuJiang) - 更换脚本外部库 cdn
+* [GooGuJiang](https://github.com/GooGuJiang) - 更换脚本外部库 CDN, UI 改进
 * [wyhh54321](https://greasyfork.org/zh-CN/users/973982-wyhh54321) - 提供官方题库
 
 ## 更新日志
