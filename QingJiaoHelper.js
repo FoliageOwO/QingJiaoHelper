@@ -122,18 +122,19 @@ function runWhenReady(readySelector, callback) {
   tryNow();
 }
 
+function getTestPaperList(courseId, callback) {
+  request('GET', `/exam/getTestPaperList?courseId=${courseId}`, resp => callback(resp.data.testPaperList));
+}
+
 function getCourseAnswer(courseId, callback) {
-  request('GET', `/exam/getTestPaperList?courseId=${courseId}`, resp => {
-    let data = resp.data;
-    let title = data.papaerTitle; // typo xD
-    let testPaperList = data.testPaperList;
+  getTestPaperList(courseId, testPaperList => {
     if (!isNone(testPaperList)) {
       let answers = testPaperList.map(column => column.answer);
       console.debug(`成功获取到课程 [${courseId}] 的数据: ${title}`);
       console.debug('成功获取到答案', answers);
       callback(answers);
     }
-  });
+  })
 }
 
 function startCourse(courseId, successCallback) {
@@ -467,14 +468,17 @@ function dislikeResource(data, callback) {
   callback(null);
 }
 
+function getCoursesByGrade(grade, callback) {
+  request('GET', `/course/getHomepageCourseList?grade=${grade}&pageSize=50&pageNo=1`, resp => callback(resp.data.list));
+}
+
 function taskCourses(ccustomGrades=null) {
   getGrades(grades => {
     let willGrades = (!isNone(ccustomGrades) || !isNone(customGrades)) ? (ccustomGrades || customGrades) : grades;
     console.debug('获取年级列表', willGrades);
     for (let grade of willGrades) {
-      // get courses
-      request('GET', `/course/getHomepageCourseList?grade=${grade}&pageSize=24&pageNo=1`, resp2 => {
-        let courses = resp2.data.list
+      getCoursesByGrade(grade, cc => {
+        let courses = cc
           .filter(k => !k.isFinish && k.title != '期末考试') // skip finished and final exam
           .map(j => j.courseId); // courseId => list
         console.debug(`年级 [${grade}] 可用的课程 (没学过的):`, courses);
@@ -665,8 +669,6 @@ function arrDiff(arr1, arr2) {
   GM_addStyle(GM_getResourceText('buefycss')); // apply buefy style file
   GM_registerMenuCommand('菜单', showMenu); // register menu
 
-  showMessage(`欢迎使用!\n当前版本: ${version}`, 'green');
-
   // if (isLogined === true) {
   //   autoComplete();
   //   let waiting = setInterval(() => {
@@ -691,6 +693,10 @@ function arrDiff(arr1, arr2) {
   let vueScript = document.createElement('script');
   vueScript.setAttribute('src', 'https://unpkg.com/vue@2');
   document.body.appendChild(vueScript);
+
+  if (pathname === '/') {
+    showMessage(`欢迎使用!\n当前版本: ${version}`, 'green');
+  }
   
   const features = [
     { path: ['/courses', '/drugControlClassroom/courses'], title: '自动完成所有课程 (不包括考试)', func: taskCourses, enabled: course },
