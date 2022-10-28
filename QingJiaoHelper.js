@@ -24,7 +24,7 @@
 // @require              https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/buefy/0.9.17/components/field/index.min.js
 // @require              https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/buefy/0.9.17/components/checkbox/index.min.js
 // @require              https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/xlsx/0.18.2/xlsx.mini.min.js
-// @require              https://greasyfork.org/scripts/453791-lib2class/code/lib2class.js?version=1110490
+// @require              https://greasyfork.org/scripts/453791-lib2class/code/lib2class.js?version=1110511
 // @resource toastifycss https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/toastify-js/1.11.2/toastify.min.css
 // @resource buefycss    https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/buefy/0.9.17/buefy.min.css
 // ==/UserScript==
@@ -860,6 +860,95 @@ function arrDiff(arr1, arr2) {
         next(answers);
       };
     });
+  }
+
+  // 期末考试
+  if (pathname === '/courses/exams/finalExam') {
+    let supportedFinal = libs.supportedFinal;
+    if (supportedFinal.hasOwnProperty(gradeName)) {
+      let paperName = supportedFinal[gradeName];
+      // let paperName = 'finalg2';
+      let papers = libs[paperName];
+      let answers = [];
+      for (let paper of papers) {
+        let splited = paper.answer.split('').map(k => k.toUpperCase());
+        answers.push({
+          question: paper.question,
+          answer: splited,
+          answerIndex: fromDisplayAnswers(splited)
+        });
+      }
+      console.debug(answers);
+
+      let started = false;
+      let count = 0;
+      function next(answers, btn=null) {
+        runWhenReady('.exam-content-question', questionElement => {
+          let question = questionElement.innerText;
+          question = removeSpaces(question.split('\n')[0]); // get the first line
+          console.debug(question);
+  
+          if (!started) {
+            runWhenReady('#app > div > div.home-container > div > div > div > div > div > div.exam-content-btnbox > button', element => {
+              started = true;
+              next(answers, element);
+            });
+          } else {
+            if (count > 0) {
+              btn = document.querySelector('#app > div > div.home-container > div > div > div > div > div > div.exam-content-btnbox > div > button.ant-btn.ant-btn-primary');
+            }
+    
+            btn.onclick = () => {
+              setTimeout(() => next(answers, btn), 500);
+              return;
+            }
+  
+            // 精确匹配
+            function find(question) {
+              let result = answers.find(it => it.removeSpaces(it.question) == question);
+              return { answer: result, question };
+            }
+  
+            // 模糊匹配
+            function fuzzyFind(question) {
+              let arr = question.split('');
+              let len = arr.length;
+              let pers = [];
+              for (let k of answers) {
+                let karr = k.question.split('');
+                let diff = arrDiff(arr, karr);
+                let diffLen = diff.length;
+                let per = diffLen / len;
+                pers.push({ question: k.question, unconfidence: per, answer: k });
+              }
+              let confidenceQuestion = pers.sort((a, b) => a.unconfidence - b.unconfidence)[0];
+              let answer = confidenceQuestion.answer;
+              console.debug(`模糊匹配 "${question}" ->`, confidenceQuestion);
+              return { answer, question: confidenceQuestion };
+            }
+    
+            let { answer, question } = find(question) || fuzzyFind(question);
+            let selects = document.getElementsByClassName('exam-single-content-box');
+            console.debug(answer, selects);
+            showMessage(`${question}\n第 ${count + 1} 题答案: ${answer.answer}`, 'green');
+            for (let answerIndex of answer.answerIndex) {
+              let selectElement = selects[answerIndex];
+              selectElement.click();
+            }
+            count++;
+          }
+        });
+      }
+  
+      runWhenReady('#app > div > div.home-container > div > div > div > div > div > button', startButton => {
+        startButton.onclick = () => {
+          showMessage(`开始期末考试答题`, 'pink');
+          next(answers);
+        };
+      });
+    } else {
+      showMessage(`你的年级 [${gradeName}] 暂未支持期末考试!`);
+    }
   }
 
   // 课程视频跳过
