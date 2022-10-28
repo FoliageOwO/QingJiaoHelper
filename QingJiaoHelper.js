@@ -841,10 +841,10 @@ function arrDiff(arr1, arr2) {
             return { answer, question: confidenceQuestion };
           }
   
-          let { answer, question } = find(question) || fuzzyFind(question);
+          let { answer, trueQuestion } = find(question) || fuzzyFind(question);
           let selects = document.getElementsByClassName('exam-single-content-box');
           console.debug(answer, selects);
-          showMessage(`${question}\n第 ${count + 1} 题答案: ${answer.answer}`, 'green');
+          showMessage(`${trueQuestion}\n第 ${count + 1} 题答案: ${answer.answer}`, 'green');
           for (let answerIndex of answer.answerIndex) {
             let selectElement = selects[answerIndex];
             selectElement.click(); // emulate to select the answer
@@ -927,10 +927,10 @@ function arrDiff(arr1, arr2) {
               return { answer, question: confidenceQuestion };
             }
     
-            let { answer, question } = find(question) || fuzzyFind(question);
+            let { answer, trueQuestion } = find(question) || fuzzyFind(question);
             let selects = document.getElementsByClassName('exam-single-content-box');
             console.debug(answer, selects);
-            showMessage(`${question}\n第 ${count + 1} 题答案: ${answer.answer}`, 'green');
+            showMessage(`${trueQuestion}\n第 ${count + 1} 题答案: ${answer.answer}`, 'green');
             for (let answerIndex of answer.answerIndex) {
               let selectElement = selects[answerIndex];
               selectElement.click();
