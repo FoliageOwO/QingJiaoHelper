@@ -819,7 +819,7 @@ function arrDiff(arr1, arr2) {
 
           // 精确匹配
           function find(question) {
-            let result = answers.find(it => it.removeSpaces(it.question) == question);
+            let result = answers.find(it => removeSpaces(it.question) == question);
             return { answer: result, question };
           }
 
@@ -905,7 +905,7 @@ function arrDiff(arr1, arr2) {
   
             // 精确匹配
             function find(question) {
-              let result = answers.find(it => it.removeSpaces(it.question) == question);
+              let result = answers.find(it => removeSpaces(it.question) == question);
               return { answer: result, question };
             }
   
