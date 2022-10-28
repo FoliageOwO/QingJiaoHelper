@@ -47,7 +47,7 @@ function showMessage(text, color) {
     text,
     duration: 3 * 1000,
     newWindow: true,
-    gravity: 'top',
+    gravity: 'bottom',
     position: 'left',
     stopOnFocus: true,
     style: { background: color }
