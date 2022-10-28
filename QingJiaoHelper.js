@@ -207,6 +207,7 @@ let accounts = getGMValue('accounts', []);
 let autoCompleteCourseDone = getGMValue('autoCompleteCourseDone', false);
 let autoCompleteSelfCourseDone = getGMValue('autoCompleteSelfCourseDone', false);
 let autoCompleteCreditsDone = getGMValue('autoCompleteCreditsDone', false);
+let fullAutomatic = getGMValue('fullAutomatic', false);
 
 let notAvailable = name => showMessage(`[${name}] 当前功能不可用，请刷新重试！`, 'red');
 
@@ -304,7 +305,11 @@ function showMenu() {
 
             3. 获取每日学分<br/>
             <b-switch class="fqj-card-content" v-model="credits" type="is-success" size="is-small">跳转自动激活</b-switch><br/>
-            <b-button type="is-success" @click="startCredits" size="is-small">开始</b-button>
+            <b-button type="is-success" @click="startCredits" size="is-small">开始</b-button><br/>
+
+            4. 课程完成<br/>
+            真·全自动意思是自动填充答案+自动下一题, 如果不开就不会自动下一题<br/>
+            <b-switch class="fqj-card-content" v-model="fullAutomatic" type="is-success" size="is-small">真·全自动</b-switch>
           </div>
           <div v-if="isOpen == 1">
             <b-field class="file" type="is-info" :class="{'has-name': !!file}">
@@ -375,6 +380,15 @@ function showMenu() {
         },
         get() {
           return credits;
+        }
+      },
+      fullAutomatic: {
+        set(value) {
+          GM_setValue('fullAutomatic', value);
+          fullAutomatic = value;
+        },
+        get() {
+          return fullAutomatic;
         }
       }
     },
@@ -543,13 +557,19 @@ function handleExamEmulate(answers, startButton, nextButton, nextButton2, answer
           console.debug(answer, selects);
           answer = answer.split(',');
           let trueQuestion = cquestion || question;
-          showMessage(`${trueQuestion ? trueQuestion + "\n" : ""}第 ${count + 1} 题答案: ${answer}`, 'green');
+          if (!fullAutomatic) {
+            showMessage(`${trueQuestion ? trueQuestion + "\n" : ""}第 ${count + 1} 题答案: ${answer}`, 'green');
+          }
           for (let answerIndex of answerIndexs) {
             let index = Number(answerIndex);
             let selectElement = selects[index];
             selectElement.click(); // emulate to select the answer
           }
           count++;
+
+          if (fullAutomatic) {
+            btn.click();
+          }
         }
       }
     });
