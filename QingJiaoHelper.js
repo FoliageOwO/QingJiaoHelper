@@ -867,7 +867,6 @@ function arrDiff(arr1, arr2) {
     let supportedFinal = libs.supportedFinal;
     if (supportedFinal.hasOwnProperty(gradeName)) {
       let paperName = supportedFinal[gradeName];
-      // let paperName = 'finalg2';
       let papers = libs[paperName];
       let answers = [];
       for (let paper of papers) {
