@@ -69,7 +69,7 @@
 2. 跳转到出问题的页面, 按下 F12 打开 **开发者工具**
 3. 切换到 `控制台`(英文是 `Console`) 选项卡
 4. 除了 `Failed to load resource` 开头的, 查看有没有别的红色的消息 (一般都是中文错误)
-5. 截图控制台错误, 在 `GreasyFork` 反馈区, 或者 `GitHub` issues 反馈, 并带上截图
+5. 截图控制台错误, 在 `GreasyFork` 反馈, 或者 `GitHub Issues` 反馈, 并带上截图
 
 ## TODOs
 
