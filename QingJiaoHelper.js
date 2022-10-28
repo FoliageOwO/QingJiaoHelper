@@ -526,17 +526,17 @@ function fuzzyFind(answers, question) {
   return { answer, question: confidenceQuestion };
 }
 
-function handleExamEmulate(answers, startButton, nextButton, nextButton2, answerHandler, customName='答题') {
+function handleExamEmulate(answers, startButton, nextButton, nextButton2, answerHandler, customName='答题', size=100) {
   let started = false;
   let count = 0;
-  function next(answers, btn=null, size=100) {
+  function next(answers, btn=null) {
     runWhenReady('.exam-content-question', questionElement => {
       let question = questionElement.innerText;
       question = removeSpaces(question.split('\n')[0]); // get the first line
       if (!started) {
         runWhenReady(nextButton, element => {
           started = true;
-          next(answers, element, size);
+          next(answers, element);
         });
       } else {
         if (count > 0) {
@@ -545,7 +545,8 @@ function handleExamEmulate(answers, startButton, nextButton, nextButton2, answer
   
         if (!isNone(size) && count < size) {
           btn.onclick = () => {
-            setTimeout(() => next(answers, btn, size), 200);
+            // next(answers, btn, size);
+            setTimeout(() => next(answers, btn), 200);
             return;
           }
   
@@ -565,11 +566,12 @@ function handleExamEmulate(answers, startButton, nextButton, nextButton2, answer
             let selectElement = selects[index];
             selectElement.click(); // emulate to select the answer
           }
-          count++;
 
           if (fullAutomatic) {
             btn.click();
           }
+
+          count++;
         }
       }
     });
@@ -764,7 +766,8 @@ function taskSingleCourse() {
           answer: toDisplayAnswer(first.split(',')),
           answerIndexs: first.split(',')
         }
-      });
+      },
+      size=answers.length);
   });
 }
 
@@ -804,7 +807,8 @@ function taskCompetition() {
         answerIndexs: answer.answerIndexs
       }
     },
-    '知识竞赛');
+    customName='知识竞赛',
+    size=20); // stupid way
 }
 
 function taskFinalExam() {
@@ -835,7 +839,8 @@ function taskFinalExam() {
           answerIndexs: answer.answerIndexs
         }
       },
-      '期末考试');
+      customName='期末考试',
+      size=10); // stupid way
   } else {
     showMessage(`你的年级 [${gradeName}] 暂未支持期末考试!`);
   }
