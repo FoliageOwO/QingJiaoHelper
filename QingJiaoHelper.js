@@ -470,6 +470,24 @@ function getCoursesByGrade(grade, callback) {
   request('GET', `/course/getHomepageCourseList?grade=${grade}&pageSize=50&pageNo=1`, resp => callback(resp.data.list));
 }
 
+let alphas = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+function toDisplayAnswer(answerList) {
+  let result = '';
+  for (let answer of answerList) {
+    let index = Number(answer);
+    result = result + alphas[index];
+  }
+  return result;
+}
+
+function fromDisplayAnswers(answerList) {
+  let result = [];
+  for (let answer of answerList) {
+    result.push(alphas.indexOf(answer));
+  }
+  return result;
+}
+
 function taskCourses(ccustomGrades=null) {
   getGrades(grades => {
     let willGrades = (!isNone(ccustomGrades) || !isNone(customGrades)) ? (ccustomGrades || customGrades) : grades;
@@ -637,22 +655,247 @@ function taskCredit() {
   }, 500);
 }
 
-let alphas = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-function toDisplayAnswer(answerList) {
-  let result = '';
-  for (let answer of answerList) {
-    let index = Number(answer);
-    result = result + alphas[index];
+function taskSingleCourse() {
+  let courseId = pathname.match(/(\d+)/g)[0];
+
+  let started = false;
+  let count = 0;
+  function next(size, answers, btn=null) {
+    if (!started) {
+      runWhenReady('#app > div > div.home-container > div > div > div > div > div > div.exam-content-btnbox > button', element => {
+        started = true;
+        next(size, answers, element);
+      });
+    } else {
+      if (count > 0) {
+        btn = document.querySelector('#app > div > div.home-container > div > div > div > div > div > div.exam-content-btnbox > div > button.ant-btn-primary');
+      }
+
+      if (count < size) {
+        btn.onclick = () => {
+          setTimeout(() => next(size, answers, btn), 500);
+          return;
+        }
+  
+        let answer = answers.shift().toString();
+        let selects = document.getElementsByClassName('exam-single-content-box');
+        console.debug(answer, selects);
+        answer = answer.split(',');
+        showMessage(`第 ${count + 1} 题答案: ${toDisplayAnswer(answer)}`, 'green');
+        for (let answerIndex of answer) {
+          let selectElement = selects[answerIndex];
+          selectElement.click(); // emulate to select the answer
+        }
+        count++;
+      }
+    }
   }
-  return result;
+
+  getCourseAnswer(courseId, answers => {
+    runWhenReady('#app > div > div.home-container > div > div > div > div > div > button', startButton => {
+      startButton.onclick = () => {
+        showMessage(`开始答题: ${courseId}`, 'blue');
+        next(answers.length, answers);
+      };
+    });
+  });
 }
 
-function fromDisplayAnswers(answerList) {
-  let result = [];
-  for (let answer of answerList) {
-    result.push(alphas.indexOf(answer));
+function taskCompetition() {
+  let answers = [];
+  let getLib = ['一年级', '二年级', '三年级', '四年级', '五年级', '六年级'].indexOf(gradeName) != -1
+    ? () => {
+      showMessage('已加载小学组题库!', 'green');
+      return libs.primary;
+    } : () => {
+      if (!isNone(gradeName)) {
+        showMessage('已加载中学组题库!', 'green')
+        return libs.middle;
+      } else {
+        return [];
+      }
+    };
+  for (let q of getLib()) {
+    let splited = q.answer.split('').map(k => k.toUpperCase());
+    answers.push({
+      question: q.question,
+      answer: splited,
+      answerIndex: fromDisplayAnswers(splited)
+    });
   }
-  return result;
+
+  console.debug(answers);
+
+  let started = false;
+  let count = 0;
+  function next(answers, btn=null) {
+    runWhenReady('.exam-content-question', questionElement => {
+      let question = questionElement.innerText;
+      question = removeSpaces(question.split('\n')[0]); // get the first line
+      console.debug(question);
+
+      if (!started) {
+        runWhenReady('#app > div > div.home-container > div > div > div.competiotion-exam-box-all > div.exam-box > div.competition-sub > button', element => {
+          started = true;
+          next(answers, element);
+        });
+      } else {
+        if (count > 0) {
+          btn = document.querySelector('#app > div > div.home-container > div > div > div.competiotion-exam-box-all > div.exam-box > div.competition-sub > button.ant-btn.ant-btn-primary');
+        }
+
+        btn.onclick = () => {
+          setTimeout(() => next(answers, btn), 500);
+          return;
+        }
+
+        // 精确匹配
+        function find(question) {
+          let result = answers.find(it => removeSpaces(it.question) == question);
+          return !isNone(result) ? { answer: result, question } : null;
+        }
+
+        // 模糊匹配
+        function fuzzyFind(question) {
+          let arr = question.split('');
+          let len = arr.length;
+          let pers = [];
+          for (let k of answers) {
+            let karr = k.question.split('');
+            let diff = arrDiff(arr, karr);
+            let diffLen = diff.length;
+            let per = diffLen / len;
+            pers.push({ question: k.question, unconfidence: per, answer: k });
+          }
+          let confidenceQuestion = pers.sort((a, b) => a.unconfidence - b.unconfidence)[0];
+          let answer = confidenceQuestion.answer;
+          console.debug(`模糊匹配 "${question}" ->`, confidenceQuestion);
+          return { answer, question: confidenceQuestion };
+        }
+
+        let { answer, trueQuestion } = find(question) || fuzzyFind(question);
+        let selects = document.getElementsByClassName('exam-single-content-box');
+        console.debug(answer, selects);
+        showMessage(`${trueQuestion}\n第 ${count + 1} 题答案: ${answer.answer}`, 'green');
+        for (let answerIndex of answer.answerIndex) {
+          let selectElement = selects[answerIndex];
+          selectElement.click(); // emulate to select the answer
+        }
+        count++;
+      }
+    });
+  }
+
+  runWhenReady('#app > div > div.home-container > div > div > div.competiotion-exam-box-all > div.exam-box > div > div.exam_content_bottom_btn > button', startButton => {
+    startButton.onclick = () => {
+      showMessage(`开始知识禁赛答题`, 'pink');
+      next(answers);
+    };
+  });
+}
+
+function taskFinalExam() {
+  let supportedFinal = libs.supportedFinal;
+  if (supportedFinal.hasOwnProperty(gradeName)) {
+    let paperName = supportedFinal[gradeName];
+    let papers = libs[paperName];
+    let answers = [];
+    for (let paper of papers) {
+      let splited = paper.answer.split('').map(k => k.toUpperCase());
+      answers.push({
+        question: paper.question,
+        answer: splited,
+        answerIndex: fromDisplayAnswers(splited)
+      });
+    }
+    console.debug(answers);
+
+    let started = false;
+    let count = 0;
+    function next(answers, btn=null) {
+      runWhenReady('.exam-content-question', questionElement => {
+        let question = questionElement.innerText;
+        question = removeSpaces(question.split('\n')[0]); // get the first line
+        console.debug(question);
+
+        if (!started) {
+          runWhenReady('#app > div > div.home-container > div > div > div > div > div > div.exam-content-btnbox > button', element => {
+            started = true;
+            next(answers, element);
+          });
+        } else {
+          if (count > 0) {
+            btn = document.querySelector('#app > div > div.home-container > div > div > div > div > div > div.exam-content-btnbox > div > button.ant-btn.ant-btn-primary');
+          }
+  
+          btn.onclick = () => {
+            setTimeout(() => next(answers, btn), 500);
+            return;
+          }
+
+          // 精确匹配
+          function find(question) {
+            let result = answers.find(it => removeSpaces(it.question) == question);
+            return !isNone(result) ? { answer: result, question } : null;
+          }
+
+          // 模糊匹配
+          function fuzzyFind(question) {
+            let arr = question.split('');
+            let len = arr.length;
+            let pers = [];
+            for (let k of answers) {
+              let karr = k.question.split('');
+              let diff = arrDiff(arr, karr);
+              let diffLen = diff.length;
+              let per = diffLen / len;
+              pers.push({ question: k.question, unconfidence: per, answer: k });
+            }
+            let confidenceQuestion = pers.sort((a, b) => a.unconfidence - b.unconfidence)[0];
+            let answer = confidenceQuestion.answer;
+            console.debug(`模糊匹配 "${question}" ->`, confidenceQuestion);
+            return { answer, question: confidenceQuestion };
+          }
+  
+          let { answer, trueQuestion } = find(question) || fuzzyFind(question);
+          let selects = document.getElementsByClassName('exam-single-content-box');
+          console.debug(answer, selects);
+          showMessage(`${trueQuestion}\n第 ${count + 1} 题答案: ${answer.answer}`, 'green');
+          for (let answerIndex of answer.answerIndex) {
+            let selectElement = selects[answerIndex];
+            selectElement.click();
+          }
+          count++;
+        }
+      });
+    }
+
+    runWhenReady('#app > div > div.home-container > div > div > div > div > div > button', startButton => {
+      startButton.onclick = () => {
+        showMessage(`开始期末考试答题`, 'pink');
+        next(answers);
+      };
+    });
+  } else {
+    showMessage(`你的年级 [${gradeName}] 暂未支持期末考试!`);
+  }
+}
+
+function taskSkip() {
+  let courseId = pathname.match(/(\d+)/g)[0];
+  runWhenReady('#app > div > div.home-container > div > div > div.course-title-box > div > a > span', span => {
+    span.style.display = 'inline-flex';
+    let element = document.createElement('button');
+    element.type = 'button';
+    element.classList = 'ant-btn ant-btn-danger ant-btn-lg';
+    let skipSpan = document.createElement('span');
+    skipSpan.innerText = '跳过';
+    element.appendChild(skipSpan);
+    element.onclick = () => {
+      location.href = `/courses/exams/${courseId}`;
+    };
+    span.appendChild(element);
+  });
 }
 
 function removeSpaces(str) {
@@ -704,11 +947,17 @@ function arrDiff(arr1, arr2) {
   const features = [
     { path: ['/courses', '/drugControlClassroom/courses'], title: '自动完成所有课程 (不包括考试)', func: taskCourses, enabled: course },
     { path: ['/selfCourse', '/drugControlClassroom/selfCourse'], title: '自动完成所有课程 (自学) (不包括考试)', func: taskSelfCourses, enabled: selfCourse },
-    { path: ['/admin/creditCenter'], title: '自动获取每日学分', func: taskCredit, enabled: credits }
+    { path: ['/admin/creditCenter'], title: '自动获取每日学分', func: taskCredit, enabled: credits },
+    { path: /\/courses\/exams\/(\d+)/, title: '手动完成', func: taskSingleCourse, enabled: true },
+    { path: ['/competition'], title: '知识竞赛', func: taskCompetition, enabled: true },
+    { path: ['/courses/exams/finalExam'], title: '期末考试', func: taskFinalExam, enabled: true },
+    { path: /\/courses\/(\d+)/, title: '课程视频跳过', func: taskSkip, enabled: true }
   ];
 
   for (let feature of features) {
-    if (feature.path.indexOf(pathname) != -1 && feature.enabled) {
+    let path = feature.path;
+    let match = path instanceof RegExp ? pathname.match(path) : path.indexOf(pathname) !== -1;
+    if (match && feature.enabled) {
       showMessage(`激活功能: ${feature.title}`, 'green');
       feature.func();
     }
@@ -719,253 +968,6 @@ function arrDiff(arr1, arr2) {
       showMessage(`已激活 ${feature.title}`, 'green');
       feature.func();
     }
-  }
-
-  // 手动完成
-  if (pathname.match(/\/courses\/exams\/(\d+)/)) {
-    let courseId = pathname.match(/(\d+)/g)[0];
-
-    let started = false;
-    let count = 0;
-    function next(size, answers, btn=null) {
-      if (!started) {
-        runWhenReady('#app > div > div.home-container > div > div > div > div > div > div.exam-content-btnbox > button', element => {
-          started = true;
-          next(size, answers, element);
-        });
-      } else {
-        if (count > 0) {
-          btn = document.querySelector('#app > div > div.home-container > div > div > div > div > div > div.exam-content-btnbox > div > button.ant-btn-primary');
-        }
-
-        if (count < size) {
-          btn.onclick = () => {
-            setTimeout(() => next(size, answers, btn), 500);
-            return;
-          }
-    
-          let answer = answers.shift().toString();
-          let selects = document.getElementsByClassName('exam-single-content-box');
-          console.debug(answer, selects);
-          answer = answer.split(',');
-          showMessage(`第 ${count + 1} 题答案: ${toDisplayAnswer(answer)}`, 'green');
-          for (let answerIndex of answer) {
-            let selectElement = selects[answerIndex];
-            selectElement.click(); // emulate to select the answer
-          }
-          count++;
-        }
-      }
-    }
-
-    getCourseAnswer(courseId, answers => {
-      runWhenReady('#app > div > div.home-container > div > div > div > div > div > button', startButton => {
-        startButton.onclick = () => {
-          showMessage(`开始答题: ${courseId}`, 'blue');
-          next(answers.length, answers);
-        };
-      });
-    });
-  }
-
-  // 知识竞赛 2022
-  if (pathname === '/competition') {
-    let answers = [];
-    let getLib = ['一年级', '二年级', '三年级', '四年级', '五年级', '六年级'].indexOf(gradeName) != -1
-      ? () => {
-        showMessage('已加载小学组题库!', 'green');
-        return libs.primary;
-      } : () => {
-        if (!isNone(gradeName)) {
-          showMessage('已加载中学组题库!', 'green')
-          return libs.middle;
-        } else {
-          return [];
-        }
-      };
-    for (let q of getLib()) {
-      let splited = q.answer.split('').map(k => k.toUpperCase());
-      answers.push({
-        question: q.question,
-        answer: splited,
-        answerIndex: fromDisplayAnswers(splited)
-      });
-    }
-
-    console.debug(answers);
-
-    let started = false;
-    let count = 0;
-    function next(answers, btn=null) {
-      runWhenReady('.exam-content-question', questionElement => {
-        let question = questionElement.innerText;
-        question = removeSpaces(question.split('\n')[0]); // get the first line
-        console.debug(question);
-
-        if (!started) {
-          runWhenReady('#app > div > div.home-container > div > div > div.competiotion-exam-box-all > div.exam-box > div.competition-sub > button', element => {
-            started = true;
-            next(answers, element);
-          });
-        } else {
-          if (count > 0) {
-            btn = document.querySelector('#app > div > div.home-container > div > div > div.competiotion-exam-box-all > div.exam-box > div.competition-sub > button.ant-btn.ant-btn-primary');
-          }
-  
-          btn.onclick = () => {
-            setTimeout(() => next(answers, btn), 500);
-            return;
-          }
-
-          // 精确匹配
-          function find(question) {
-            let result = answers.find(it => removeSpaces(it.question) == question);
-            return !isNone(result) ? { answer: result, question } : null;
-          }
-
-          // 模糊匹配
-          function fuzzyFind(question) {
-            let arr = question.split('');
-            let len = arr.length;
-            let pers = [];
-            for (let k of answers) {
-              let karr = k.question.split('');
-              let diff = arrDiff(arr, karr);
-              let diffLen = diff.length;
-              let per = diffLen / len;
-              pers.push({ question: k.question, unconfidence: per, answer: k });
-            }
-            let confidenceQuestion = pers.sort((a, b) => a.unconfidence - b.unconfidence)[0];
-            let answer = confidenceQuestion.answer;
-            console.debug(`模糊匹配 "${question}" ->`, confidenceQuestion);
-            return { answer, question: confidenceQuestion };
-          }
-  
-          let { answer, trueQuestion } = find(question) || fuzzyFind(question);
-          let selects = document.getElementsByClassName('exam-single-content-box');
-          console.debug(answer, selects);
-          showMessage(`${trueQuestion}\n第 ${count + 1} 题答案: ${answer.answer}`, 'green');
-          for (let answerIndex of answer.answerIndex) {
-            let selectElement = selects[answerIndex];
-            selectElement.click(); // emulate to select the answer
-          }
-          count++;
-        }
-      });
-    }
-
-    runWhenReady('#app > div > div.home-container > div > div > div.competiotion-exam-box-all > div.exam-box > div > div.exam_content_bottom_btn > button', startButton => {
-      startButton.onclick = () => {
-        showMessage(`开始知识禁赛答题`, 'pink');
-        next(answers);
-      };
-    });
-  }
-
-  // 期末考试
-  if (pathname === '/courses/exams/finalExam') {
-    let supportedFinal = libs.supportedFinal;
-    if (supportedFinal.hasOwnProperty(gradeName)) {
-      let paperName = supportedFinal[gradeName];
-      let papers = libs[paperName];
-      let answers = [];
-      for (let paper of papers) {
-        let splited = paper.answer.split('').map(k => k.toUpperCase());
-        answers.push({
-          question: paper.question,
-          answer: splited,
-          answerIndex: fromDisplayAnswers(splited)
-        });
-      }
-      console.debug(answers);
-
-      let started = false;
-      let count = 0;
-      function next(answers, btn=null) {
-        runWhenReady('.exam-content-question', questionElement => {
-          let question = questionElement.innerText;
-          question = removeSpaces(question.split('\n')[0]); // get the first line
-          console.debug(question);
-  
-          if (!started) {
-            runWhenReady('#app > div > div.home-container > div > div > div > div > div > div.exam-content-btnbox > button', element => {
-              started = true;
-              next(answers, element);
-            });
-          } else {
-            if (count > 0) {
-              btn = document.querySelector('#app > div > div.home-container > div > div > div > div > div > div.exam-content-btnbox > div > button.ant-btn.ant-btn-primary');
-            }
-    
-            btn.onclick = () => {
-              setTimeout(() => next(answers, btn), 500);
-              return;
-            }
-  
-            // 精确匹配
-            function find(question) {
-              let result = answers.find(it => removeSpaces(it.question) == question);
-              return !isNone(result) ? { answer: result, question } : null;
-            }
-  
-            // 模糊匹配
-            function fuzzyFind(question) {
-              let arr = question.split('');
-              let len = arr.length;
-              let pers = [];
-              for (let k of answers) {
-                let karr = k.question.split('');
-                let diff = arrDiff(arr, karr);
-                let diffLen = diff.length;
-                let per = diffLen / len;
-                pers.push({ question: k.question, unconfidence: per, answer: k });
-              }
-              let confidenceQuestion = pers.sort((a, b) => a.unconfidence - b.unconfidence)[0];
-              let answer = confidenceQuestion.answer;
-              console.debug(`模糊匹配 "${question}" ->`, confidenceQuestion);
-              return { answer, question: confidenceQuestion };
-            }
-    
-            let { answer, trueQuestion } = find(question) || fuzzyFind(question);
-            let selects = document.getElementsByClassName('exam-single-content-box');
-            console.debug(answer, selects);
-            showMessage(`${trueQuestion}\n第 ${count + 1} 题答案: ${answer.answer}`, 'green');
-            for (let answerIndex of answer.answerIndex) {
-              let selectElement = selects[answerIndex];
-              selectElement.click();
-            }
-            count++;
-          }
-        });
-      }
-  
-      runWhenReady('#app > div > div.home-container > div > div > div > div > div > button', startButton => {
-        startButton.onclick = () => {
-          showMessage(`开始期末考试答题`, 'pink');
-          next(answers);
-        };
-      });
-    } else {
-      showMessage(`你的年级 [${gradeName}] 暂未支持期末考试!`);
-    }
-  }
-
-  // 课程视频跳过
-  if (pathname.match(/\/courses\/(\d+)/)) {
-    let courseId = pathname.match(/(\d+)/g)[0];
-    runWhenReady('#app > div > div.home-container > div > div > div.course-title-box > div > a > span', span => {
-      span.style.display = 'inline-flex';
-      let element = document.createElement('button');
-      element.type = 'button';
-      element.classList = 'ant-btn ant-btn-danger ant-btn-lg';
-      let skipSpan = document.createElement('span');
-      skipSpan.innerText = '跳过';
-      element.appendChild(skipSpan);
-      element.onclick = () => {
-        location.href = `/courses/exams/${courseId}`;
-      };
-      span.appendChild(element);
-    });
   }
 
   // startFromDatas = (data) => {
