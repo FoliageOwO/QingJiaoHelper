@@ -2,7 +2,7 @@
 // @name                 QingJiaoHelper
 // @namespace            http://tampermonkey.net/
 // @version              0.2.9
-// @description          青骄第二课堂小助手: 长期更新 | 2022 知识竞赛 | 自动完成所有课程 | 每日领取学分 | 课程自动填充答案
+// @description          青骄第二课堂小助手: 长期更新 | 2022 知识竞赛 | 跳过视频 | 自动完成所有课程 | 每日领取学分 | 课程自动填充答案
 // @author               WindLeaf
 // @match                *://www.2-class.com/*
 // @grant                GM_addStyle
