@@ -1,0 +1,28 @@
+{
+  "name": "qingjiaohelper",
+  "version": "0.3.0",
+  "description": "青骄第二课堂小助手：长期更新 | 2022 知识竞赛 | 自动完成所有课程 | 每日领取学分 | 课程自动填充答案",
+  "main": "./src/main.ts",
+  "scripts": {
+    "gen": "ts-node ./generator.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WindLeaf233/QingJiaoHelper.git"
+  },
+  "author": "WindLeaf233",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/WindLeaf233/QingJiaoHelper/issues"
+  },
+  "homepage": "https://github.com/WindLeaf233/QingJiaoHelper#readme",
+  "dependencies": {
+    "axios": "^1.5.0",
+    "toastify-js": "^1.12.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.6.2",
+    "typescript": "^5.2.2"
+  },
+  "module": "NodeNext"
+}
