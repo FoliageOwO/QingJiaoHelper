@@ -5,7 +5,6 @@ import { showMessage } from "./utils";
 /* ------------ 脚本定义 ------------ */
 export const scriptName = "QingJiaoHelper";
 export const scriptVersion = "0.2.9";
-export const location = globalThis.location;
 export const toastifyDuration = 3 * 1000;
 export const toastifyGravity = "top";
 export const toastifyPosition = "left";

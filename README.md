@@ -9,7 +9,7 @@
 ## 构建
 
 > [!NOTE]
-> 你需要装有 `Node.js 18+` 的环境
+> 你需要装有 `Node.js 18+`、`typescript`、`ts-node` 的环境
 
 1. 克隆仓库到本地
 
