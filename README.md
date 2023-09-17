@@ -20,6 +20,7 @@ $ git clone https://github.com/WindLeaf233/QingJiaoHelper.git
 2. 安装包
 
 ```bash
+$ cd QingJiaoHelper
 $ npm i # 或者用你喜欢的包管理器，例如 `cnpm`
 ```
 
