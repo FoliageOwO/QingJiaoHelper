@@ -1,5 +1,10 @@
 import { scriptName, scriptVersion } from "./consts";
-import { taskCourses, taskSkip } from "./tasks";
+import {
+  taskCourses,
+  taskGetCredit,
+  taskSingleCourse,
+  taskSkip,
+} from "./tasks";
 import { featureNotAvailable, getGMValue, showMessage } from "./utils";
 
 /// imports end
@@ -12,8 +17,16 @@ export const isTaskCoursesEnabled = getGMValue<boolean>(
   false
 );
 export const isTaskSelfCourseEnabled = getGMValue<boolean>(
-  "qjh_taskSelfCourseEnabled",
+  "qjh_isTaskSelfCourseEnabled",
   false
+);
+export const isTaskGetCreditEnabled = getGMValue<boolean>(
+  "qjh_isTaskGetCreditEnabled",
+  false
+);
+export const isTaskSingleCourseEnabled = getGMValue<boolean>(
+  "qjh_isTaskSingleCourseEnabled",
+  true
 );
 export const customGradeLevels = getGMValue<string[]>(
   "qjh_customGradeLevels",
@@ -54,18 +67,20 @@ const features: feature[] = [
     // enabled: isTaskSelfCourseEnabled,
     enabled: true,
   },
-  // {
-  //   title: "自动获取每日学分",
-  //   matcher: ["/admin/creditCenter"],
-  //   task: taskCredit,
-  //   enabled: credits,
-  // },
-  // {
-  //   title: "手动完成",
-  //   matcher: /\/courses\/exams\/(\d+)/,
-  //   task: taskSingleCourse,
-  //   enabled: true,
-  // },
+  {
+    title: "自动获取每日学分",
+    matcher: ["/admin/creditCenter"],
+    task: taskGetCredit,
+    // enabled: isTaskGetCreditEnabled,
+    enabled: true,
+  },
+  {
+    title: "手动完成",
+    matcher: /\/courses\/exams\/(\d+)/,
+    task: taskSingleCourse,
+    // enabled: isTaskSingleCourseEnabled,
+    enabled: true,
+  },
   // {
   //   title: "知识竞赛",
   //   matcher: ["/competition"],
