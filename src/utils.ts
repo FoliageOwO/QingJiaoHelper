@@ -62,28 +62,51 @@ export function getGMValue<T>(name: string, defaultValue: T): T {
 }
 
 /**
- * 等待页面某个元素完全加载完成后执行回调函数
+ * 等待页面某个元素完全加载完成并获取这个元素对象
  * @param querySelector 选择器
- * @param callback 回调函数
  */
-export function waitForElementLoaded(
-  querySelector: string,
-  callback: (element: HTMLElement) => void
-): void {
-  let attempts = 0;
-  const tryFind = () => {
-    const element = document.querySelector(querySelector) as HTMLElement;
-    if (element) {
-      callback(element);
-      return;
-    } else {
-      attempts++;
-      if (attempts >= 30) {
-        console.error(`无法找到元素 [${querySelector}]，已放弃！`);
+export async function waitForElementLoaded(
+  querySelector: string
+): Promise<HTMLElement> {
+  return new Promise<HTMLElement>((resolve, reject) => {
+    let attempts = 0;
+    const tryFind = () => {
+      const element = document.querySelector(querySelector) as HTMLElement;
+      if (element) {
+        resolve(element);
       } else {
-        setTimeout(tryFind, 250 * Math.pow(1.1, attempts));
+        attempts++;
+        if (attempts >= 30) {
+          console.error(`无法找到元素 [${querySelector}]，已放弃！`);
+          reject();
+        } else {
+          setTimeout(tryFind, 250 * Math.pow(1.1, attempts));
+        }
       }
-    }
-  };
-  tryFind();
+    };
+    tryFind();
+  });
+}
+
+/**
+ * 删除文本里的所有空格
+ * @param string 输入文本
+ * @returns 删除空格后的文本
+ */
+export function removeSpaces(string: string): string {
+  return string.replace(/\s*/g, "");
+}
+
+/**
+ * 把数字答案转为可供查看的字母答案
+ * @param answers 答案列表
+ */
+export function toDisplayAnswer(answers: any[]) {
+  const alphas = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+  let result = "";
+  for (const answer of answers) {
+    const index = Number(answer);
+    result = result + alphas[index];
+  }
+  return result;
 }

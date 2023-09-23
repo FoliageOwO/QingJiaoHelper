@@ -1,4 +1,3 @@
-import { skip } from "node:test";
 import {
   commitExam,
   getAvailableGradeLevels,
@@ -7,7 +6,14 @@ import {
   getSelfCoursesByGradeLevel,
 } from "./api";
 import { reqtoken } from "./consts";
-import { isNone, showMessage, waitForElementLoaded } from "./utils";
+import {
+  isNone,
+  removeSpaces,
+  showMessage,
+  toDisplayAnswer,
+  waitForElementLoaded,
+} from "./utils";
+import { isFullAutomaticEmulation } from ".";
 
 /// imports end
 
@@ -96,25 +102,164 @@ export async function taskCourses(isSelfCourses: boolean): Promise<void> {
 }
 
 /**
+ * 开始手动单个课程自动完成
+ */
+export async function taskSingleCourse(): Promise<void> {
+  const courseId = location.pathname.match(/(\d+)/g)[0];
+  const answers = await getCourseAnswers(courseId);
+  await emulateExamination(
+    answers,
+    "#app > div > div.home-container > div > div > div > div > div > button",
+    "#app > div > div.home-container > div > div > div > div > div > div.exam-content-btnbox > button",
+    "#app > div > div.home-container > div > div > div > div > div > div.exam-content-btnbox > div > button.ant-btn-primary",
+    (answers, _) => {
+      const firstAnswer = answers.shift().toString();
+      return {
+        answer: toDisplayAnswer(firstAnswer.split(",")),
+        answerIndexes: firstAnswer.split(","),
+        matchedQuestion: null,
+      };
+    },
+    `答题 [${courseId}]`,
+    answers.length
+  );
+}
+
+/**
+ * 考试全自动完成模拟
+ * @param answers 答案列表
+ * @param startButtonSelector 开始按钮选择器
+ * @param primaryNextButtonSelector 初下一题按钮选择器
+ * @param secondaryNextButtonSelector 次下一题按钮选择器
+ * @param nextAnswerHandler 下一个答案处理器，传入答案和问题并由该处理器处理完毕后返回答案和匹配到的问题至本函数
+ * @param examinationName 答题名称
+ * @param size
+ */
+export async function emulateExamination(
+  answers: any[],
+  startButtonSelector: string,
+  primaryNextButtonSelector: string,
+  secondaryNextButtonSelector: string,
+  nextAnswerHandler: (
+    answers: any[],
+    question: string
+  ) => {
+    answer: string;
+    answerIndexes: string[];
+    matchedQuestion: string | undefined;
+  },
+  examinationName: string,
+  size = 100
+): Promise<void> {
+  // TODO 这个函数有些过于复杂了，之后有时间看看能不能简化并剥离出来
+  let isExaminationStarted = false;
+  let count = 0;
+
+  /**
+   * 下一题子函数
+   * @param nextAnswers 下一题的答案
+   * @param nextButton 下一题按钮，可以是初下一题按钮，也可以是次下一题按钮，也可以是提交按钮
+   */
+  const next = async (nextAnswers: any[], nextButton: HTMLElement = null) => {
+    // 获取问题元素
+    const questionElement = await waitForElementLoaded(
+      ".exam-content-question"
+    );
+    // 获取问题文本
+    const questionText = removeSpaces(
+      questionElement.innerText.split("\n")[0] // 获取第一行（题目都是在第一行）
+    );
+    // 如果考试还未开始，先等 `初下一题` 按钮加载完成，并重新传回此函数开始考试
+    if (!isExaminationStarted) {
+      const _firstNextButton = await waitForElementLoaded(
+        primaryNextButtonSelector
+      );
+      isExaminationStarted = true;
+      await next(nextAnswers, _firstNextButton);
+    } else {
+      // 如果已经开始过，那么 `count` 必定大于 0
+      // 此时，会把下一步按钮从 `初下一题` 按钮更换为 `次下一题` 按钮
+      if (count > 0) {
+        nextButton = document.querySelector(secondaryNextButtonSelector);
+      }
+
+      // 根据题量大小 `size` 开始答题
+      if (!isNone(size) && count < size) {
+        // 用户点击 `下一步` 按钮会继续触发本函数，传入下一题的答案和下一题的按钮
+        // * 延时为 200ms
+        nextButton.onclick = () => {
+          setTimeout(() => next(nextAnswers, nextButton), 200);
+          return;
+        };
+
+        // answer -> ABC
+        // answerIndexs -> 1,2,3
+        // `matchedQuestion` 为在题库匹配到的问题，可以是模糊匹配，也可以是精确匹配
+        let { answer, answerIndexes, matchedQuestion } = nextAnswerHandler(
+          answers,
+          questionText
+        );
+        // 获取选择框元素，有很多个
+        const selections = document.getElementsByClassName(
+          "exam-single-content-box"
+        );
+        console.debug("选择", answer, selections);
+        const displayAnswer = answer.split(",");
+        // 获取最终的问题文本
+        const finalQuestion = matchedQuestion || questionText;
+        if (!isFullAutomaticEmulation) {
+          showMessage(
+            `${finalQuestion ? finalQuestion + "\n" : ""}第 ${
+              count + 1
+            } 题答案：${displayAnswer}`,
+            "green"
+          );
+        }
+
+        // 自动选择答案
+        for (const answerIndex of answerIndexes) {
+          const selectionElement = selections[
+            Number(answerIndex)
+          ] as HTMLElement;
+          // 模拟点击
+          selectionElement.click();
+        }
+
+        // 如果是全自动，会自动点击下一题的按钮
+        if (isFullAutomaticEmulation) {
+          nextButton.click();
+        }
+
+        count++;
+      }
+    }
+  };
+
+  const startButton = await waitForElementLoaded(startButtonSelector);
+  startButton.onclick = () => {
+    showMessage(`开始 ${examinationName}！`, "blue");
+    next(answers, null);
+  };
+}
+
+/**
  * 自动在课程视频页面添加 `跳过` 按钮
  */
-export function taskSkip(): void {
+export async function taskSkip(): Promise<void> {
   const courseId = location.pathname.match(/(\d+)/g)[0];
-  waitForElementLoaded(
-    "#app > div > div.home-container > div > div > div.course-title-box > div > a > span",
-    (span) => {
-      span.style.display = "inline-flex";
-      const skipButton = document.createElement("button");
-      skipButton.type = "button";
-      // 和青骄第二课堂的按钮用同样的样式
-      skipButton.className = "ant-btn ant-btn-danger ant-btn-lg";
-      const skipSpan = document.createElement("span");
-      skipSpan.innerText = "跳过";
-      skipButton.appendChild(skipSpan);
-      skipButton.onclick = () => {
-        location.href = `/courses/exams/${courseId}`;
-      };
-      span.appendChild(skipButton);
-    }
+  const span = await waitForElementLoaded(
+    "#app > div > div.home-container > div > div > div.course-title-box > div > a > span"
   );
+  span.style.display = "inline-flex";
+  const skipButton = document.createElement("button");
+  skipButton.type = "button";
+  // 和青骄第二课堂的按钮用同样的样式
+  skipButton.className = "ant-btn ant-btn-danger ant-btn-lg";
+  const skipSpan = document.createElement("span");
+  skipSpan.innerText = "跳过";
+  skipButton.appendChild(skipSpan);
+  skipButton.onclick = () => {
+    location.href = `/courses/exams/${courseId}`;
+  };
+  span.appendChild(skipButton);
 }
