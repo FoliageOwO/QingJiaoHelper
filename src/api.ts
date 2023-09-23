@@ -165,9 +165,10 @@ export async function commitExam(data: any): Promise<any> {
  */
 export async function addMedal(): Promise<Number | undefined> {
   return await requestAPI(apiAddMedal).then((response: AxiosResponse) => {
-    const status = response.data.status;
-    const num = response.data.medalNum;
-    if (status) {
+    const data = response.data;
+    const flag = data.flag;
+    const num = data.medalNum;
+    if (flag) {
       return num;
     } else {
       return undefined;
