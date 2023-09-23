@@ -1,9 +1,13 @@
 import {
+  addMedal,
+  addPCPlayPV,
   commitExam,
   getAvailableGradeLevels,
+  getBeforeResourcesByCategoryName,
   getCourseAnswers,
   getCoursesByGradeLevel,
   getSelfCoursesByGradeLevel,
+  likePC,
 } from "./api";
 import { reqtoken } from "./consts";
 import {
@@ -262,4 +266,90 @@ export async function taskSkip(): Promise<void> {
     location.href = `/courses/exams/${courseId}`;
   };
   span.appendChild(skipButton);
+}
+
+/**
+ * 自动获取学分
+ */
+export async function taskGetCredit(): Promise<void> {
+  // 领取禁毒学子勋章
+  const num = await addMedal();
+  if (num !== undefined) {
+    showMessage(`成功领取禁毒徽章 [${num}]!`, "green");
+  } else {
+    console.debug(`无法领取徽章（可能已领取过），已跳过！`);
+  }
+
+  // 完成耕读课堂
+  // 心理减压、耕读学堂（耕读、电影、音乐、体育、美术、自然、公开课）、校园安全
+  const categories = [
+    { name: "public_good", tag: "read" },
+    { name: "ma_yun_recommend", tag: "labour" }, // the `ma_yun_recommend` has lots of sub-categorys
+    { name: "ma_yun_recommend", tag: "movie" },
+    { name: "ma_yun_recommend", tag: "music" },
+    { name: "ma_yun_recommend", tag: "physicalEducation" },
+    { name: "ma_yun_recommend", tag: "arts" },
+    { name: "ma_yun_recommend", tag: "natural" },
+    { name: "ma_yun_recommend", tag: "publicWelfareFoundation" },
+    { name: "school_safe", tag: "safeVolunteer" },
+  ];
+  let done = 0;
+  let failed = 0;
+  let liked = 0;
+
+  for (const category of categories) {
+    const data = {
+      categoryName: category.name,
+      pageNo: 1,
+      pageSize: 100,
+      reqtoken,
+      tag: category.tag,
+    };
+    const resources = await getBeforeResourcesByCategoryName(data);
+    console.debug(`获取分类 ${category.name} 的资源`, resources);
+
+    for (const resource of resources) {
+      const resourceId = resource.resourceId;
+      // 假播放
+      // 新版青骄课堂改成了 `addPCPlayPV` 的 api，不再是 `sync`
+      // TODO 有待验证
+      const resourceData = { resourceId, reqtoken };
+      const result = await addPCPlayPV(resourceData);
+      if (result) {
+        console.debug(`成功完成资源 [${resourceId}]：${resource.title}`);
+        done++;
+      } else {
+        console.debug(`无法完成资源 ${resourceId}，已跳过！`);
+        failed++;
+      }
+
+      // 点赞
+      const likeResult = await likePC(resourceData);
+      if (likeResult) {
+        console.debug(`成功点赞资源 [${resourceId}]！`);
+        liked++;
+      } else {
+        console.error(`资源点赞失败 [${resourceId}]！`);
+      }
+    }
+  }
+
+  // 检查是否都已经完成了
+  let beforeDone = done;
+  const checkSuccess = setInterval(() => {
+    if (done !== 0) {
+      if (done === beforeDone) {
+        showMessage(
+          `成功完成 ${done}/${failed} 个资源，点赞 ${liked} 个！`,
+          "green"
+        );
+        // TODO 自动完成
+        // autoCompleteCreditsDone = true;
+        // GM_setValue('qjh_autoCompleteCreditsDone', true);
+        clearInterval(checkSuccess);
+      } else {
+        beforeDone = done;
+      }
+    }
+  }, 500);
 }

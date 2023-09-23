@@ -25,6 +25,22 @@ const apiCommitExam: api = {
   method: "POST",
   api: "/exam/commit",
 };
+const apiAddMedal: api = {
+  method: "GET",
+  api: "/medal/addMedal",
+};
+const apiGetBeforeResourcesByCategoryName: api = {
+  method: "POST",
+  api: "/resource/getBeforeResourcesByCategoryName",
+};
+const apiAddPCPlayPV: api = {
+  method: "POST",
+  api: "/resource/addPCPlayPV",
+};
+const apiLikePC: api = {
+  method: "POST",
+  api: "/resource/likePC",
+};
 
 /* ------------ API 调用函数 ------------ */
 /**
@@ -39,7 +55,7 @@ export async function requestAPI(
   data?: object
 ): Promise<AxiosResponse> {
   const method = api.method;
-  let url = `https://www.2-class.com/api${api.api}`;
+  let url = ` ${api.api}`;
   for (const key in params) {
     url = url.replaceAll("${" + key + "}", params[key]);
   }
@@ -134,4 +150,70 @@ export async function getCourseAnswers(courseId: string): Promise<any[]> {
 export async function commitExam(data: any): Promise<any> {
   const response = await requestAPI(apiCommitExam, {}, data);
   return response.data;
+}
+
+/**
+ * 领取禁毒学子勋章
+ * @returns 如果获取成功，返回徽章的序号
+ */
+export async function addMedal(): Promise<Number | undefined> {
+  return await requestAPI(apiAddMedal).then((response: AxiosResponse) => {
+    const status = response.data.status;
+    const num = response.data.medalNum;
+    if (status) {
+      return num;
+    } else {
+      return undefined;
+    }
+  });
+}
+
+/**
+ * 获取所有的资源
+ * @returns 资源对象
+ */
+export async function getBeforeResourcesByCategoryName(data: object): Promise<
+  {
+    title: string;
+    resourceId: string;
+  }[]
+> {
+  return await requestAPI(apiGetBeforeResourcesByCategoryName, {}, data).then(
+    (response: AxiosResponse) =>
+      response.data.list.map(
+        (it: { briefTitle: string; resourceId: string }) => {
+          return {
+            title: it.briefTitle,
+            resourceId: it.resourceId,
+          };
+        }
+      )
+  );
+}
+
+/**
+ * 添加资源假播放
+ * @param data 资源数据
+ * @returns 是否成功
+ */
+export async function addPCPlayPV(data: object): Promise<boolean> {
+  return await requestAPI(apiAddPCPlayPV, {}, data).then(
+    (response: AxiosResponse) => {
+      return response.data.data.result;
+    }
+  );
+}
+
+/**
+ * 给资源点赞
+ * @param data 点赞数据
+ * @returns 是否点赞成功
+ */
+export async function likePC(data: object): Promise<boolean> {
+  return await requestAPI(apiLikePC, {}, data).then(
+    (response: AxiosResponse) => {
+      const data = response.data.data;
+      return !Number.isNaN(Number(data)) || data.errorCode === "ALREADY_like";
+    }
+  );
 }

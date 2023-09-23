@@ -7,8 +7,6 @@ import { featureNotAvailable, getGMValue, showMessage } from "./utils";
 ("use strict");
 
 /* ------------ 动态值 ------------ */
-export let autoComplete = () => featureNotAvailable("自动完成");
-
 export const isTaskCoursesEnabled = getGMValue<boolean>(
   "qjh_isTaskCoursesEnabled",
   false
@@ -23,6 +21,13 @@ export const customGradeLevels = getGMValue<string[]>(
 );
 export const isFullAutomaticEmulation = getGMValue<boolean>(
   "qjh_isFullAutomaticEmulation",
+  false
+);
+
+/* ------------ 自动完成的一些值 ------------ */
+export let autoComplete = () => featureNotAvailable("自动完成");
+export let autoCompleteCreditsDone = getGMValue<boolean>(
+  "qjh_autoCompleteCreditsDone",
   false
 );
 
