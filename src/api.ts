@@ -55,7 +55,7 @@ export async function requestAPI(
   data?: object
 ): Promise<AxiosResponse> {
   const method = api.method;
-  let url = ` ${api.api}`;
+  let url = `https://www.2-class.com/api${api.api}`;
   for (const key in params) {
     url = url.replaceAll("${" + key + "}", params[key]);
   }
@@ -80,7 +80,7 @@ export async function requestAPI(
  */
 export async function getAvailableGradeLevels(): Promise<string[]> {
   return await requestAPI(apiGetGradeLevels).then((response: AxiosResponse) => {
-    return response.data.data.map((it) => it.value);
+    return response.data.data.map((it: any) => it.value);
   });
 }
 
