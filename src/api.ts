@@ -59,9 +59,13 @@ export async function requestAPI(
   for (const key in params) {
     url = url.replaceAll("${" + key + "}", params[key]);
   }
-  console.debug(`[${method}] ${url}`, data);
   if (method === "GET") {
-    return await axios({ method: "GET", url });
+    return await axios({ method: "GET", url }).then(
+      (response: AxiosResponse) => {
+        console.debug(`[${method}] ${url}`, data, response.data);
+        return response;
+      }
+    );
   } else {
     return await axios({
       method: "POST",
@@ -70,6 +74,9 @@ export async function requestAPI(
         "Content-Type": "application/json;charset=UTF-8",
       },
       data,
+    }).then((response: AxiosResponse) => {
+      console.debug(`[${method}] ${url}`, data, response.data);
+      return response;
     });
   }
 }
