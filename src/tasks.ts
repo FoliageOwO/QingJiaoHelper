@@ -302,7 +302,7 @@ export async function taskGetCredit(): Promise<void> {
       categoryName: category.name,
       pageNo: 1,
       pageSize: 100,
-      reqtoken,
+      reqtoken: reqtoken(),
       tag: category.tag,
     };
     const resources = await getBeforeResourcesByCategoryName(data);
@@ -313,7 +313,7 @@ export async function taskGetCredit(): Promise<void> {
       // 假播放
       // 新版青骄课堂改成了 `addPCPlayPV` 的 api，不再是 `sync`
       // TODO 有待验证
-      const resourceData = { resourceId, reqtoken };
+      const resourceData = { resourceId, reqtoken: reqtoken() };
       const result = await addPCPlayPV(resourceData);
       if (result) {
         console.debug(`成功完成资源 [${resourceId}]：${resource.title}`);

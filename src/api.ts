@@ -48,12 +48,13 @@ const apiLikePC: api = {
  * @param api API
  * @param params 插入参数
  * @param data 附带数据（POST 方法）
+ * @returns 获取到的 API 返回数据
  */
 export async function requestAPI(
   api: api,
   params?: object,
   data?: object
-): Promise<AxiosResponse> {
+): Promise<any> {
   const method = api.method;
   let url = `https://www.2-class.com/api${api.api}`;
   for (const key in params) {
@@ -62,8 +63,9 @@ export async function requestAPI(
   if (method === "GET") {
     return await axios({ method: "GET", url }).then(
       (response: AxiosResponse) => {
-        console.debug(`[${method}] ${url}`, data, response.data);
-        return response;
+        const rdata = response.data;
+        console.debug(`[${method}] ${url}`, data, rdata);
+        return rdata;
       }
     );
   } else {
@@ -75,8 +77,9 @@ export async function requestAPI(
       },
       data,
     }).then((response: AxiosResponse) => {
-      console.debug(`[${method}] ${url}`, data, response.data);
-      return response;
+      const rdata = response.data;
+      console.debug(`[${method}] ${url}`, data, rdata);
+      return rdata;
     });
   }
 }
@@ -86,8 +89,8 @@ export async function requestAPI(
  * @returns 所有年级名
  */
 export async function getAvailableGradeLevels(): Promise<string[]> {
-  return await requestAPI(apiGetGradeLevels).then((response: AxiosResponse) => {
-    return response.data.data.map((it: any) => it.value);
+  return await requestAPI(apiGetGradeLevels).then((data) => {
+    return data.data.map((it: any) => it.value);
   });
 }
 
@@ -101,8 +104,8 @@ export async function getCoursesByGradeLevel(
 ): Promise<any[]> {
   return await requestAPI(apiGetCoursesByGradeLevel, {
     grade: gradeLevel,
-  }).then((response: AxiosResponse) => {
-    return response.data.data.list;
+  }).then((data) => {
+    return data.data.list;
   });
 }
 
@@ -116,8 +119,8 @@ export async function getSelfCoursesByGradeLevel(
 ): Promise<any[]> {
   return await requestAPI(apiGetSelfCoursesByGradeLevel, {
     grade: gradeLevel,
-  }).then((response: AxiosResponse) => {
-    return response.data.data.list;
+  }).then((data) => {
+    return data.data.list;
   });
 }
 
@@ -127,11 +130,9 @@ export async function getSelfCoursesByGradeLevel(
  * @returns 考试题列表
  */
 export async function getTestPaperList(courseId: string): Promise<any[]> {
-  return await requestAPI(apiGetTestPaperList, { courseId }).then(
-    (response: AxiosResponse) => {
-      return response.data.data.testPaperList;
-    }
-  );
+  return await requestAPI(apiGetTestPaperList, { courseId }).then((data) => {
+    return data.data.testPaperList;
+  });
 }
 
 /**
@@ -139,14 +140,18 @@ export async function getTestPaperList(courseId: string): Promise<any[]> {
  * @param courseId 课程 ID
  * @returns 考试题答案列表
  */
-export async function getCourseAnswers(courseId: string): Promise<any[]> {
-  const testPaperList = await getTestPaperList(courseId);
-  if (!isNone(testPaperList)) {
-    const answers = testPaperList.map((column) => column.answer);
-    console.debug(`成功获取课程 [${courseId}] 的答案`, answers);
-    return answers;
-  }
-  return null;
+export async function getCourseAnswers(
+  courseId: string
+): Promise<any[] | null> {
+  return await getTestPaperList(courseId).then((testPaperList) => {
+    if (!isNone(testPaperList)) {
+      const answers = testPaperList.map((column) => column.answer);
+      console.debug(`成功获取课程 [${courseId}] 的答案`, answers);
+      return answers;
+    } else {
+      return null;
+    }
+  });
 }
 
 /**
@@ -155,8 +160,7 @@ export async function getCourseAnswers(courseId: string): Promise<any[]> {
  * @returns 请求后的 API 返回数据
  */
 export async function commitExam(data: any): Promise<any> {
-  const response = await requestAPI(apiCommitExam, {}, data);
-  return response.data;
+  return await requestAPI(apiCommitExam, {}, data);
 }
 
 /**
@@ -164,8 +168,7 @@ export async function commitExam(data: any): Promise<any> {
  * @returns 如果获取成功，返回徽章的序号
  */
 export async function addMedal(): Promise<Number | undefined> {
-  return await requestAPI(apiAddMedal).then((response: AxiosResponse) => {
-    const data = response.data;
+  return await requestAPI(apiAddMedal).then((data) => {
     const flag = data.flag;
     const num = data.medalNum;
     if (flag) {
@@ -187,15 +190,13 @@ export async function getBeforeResourcesByCategoryName(data: object): Promise<
   }[]
 > {
   return await requestAPI(apiGetBeforeResourcesByCategoryName, {}, data).then(
-    (response: AxiosResponse) =>
-      response.data.list.map(
-        (it: { briefTitle: string; resourceId: string }) => {
-          return {
-            title: it.briefTitle,
-            resourceId: it.resourceId,
-          };
-        }
-      )
+    (data) =>
+      data.data.list.map((it: { briefTitle: string; resourceId: string }) => {
+        return {
+          title: it.briefTitle,
+          resourceId: it.resourceId,
+        };
+      })
   );
 }
 
@@ -205,11 +206,9 @@ export async function getBeforeResourcesByCategoryName(data: object): Promise<
  * @returns 是否成功
  */
 export async function addPCPlayPV(data: object): Promise<boolean> {
-  return await requestAPI(apiAddPCPlayPV, {}, data).then(
-    (response: AxiosResponse) => {
-      return response.data.data.result;
-    }
-  );
+  return await requestAPI(apiAddPCPlayPV, {}, data).then((data) => {
+    return data.data.result;
+  });
 }
 
 /**
@@ -218,10 +217,8 @@ export async function addPCPlayPV(data: object): Promise<boolean> {
  * @returns 是否点赞成功
  */
 export async function likePC(data: object): Promise<boolean> {
-  return await requestAPI(apiLikePC, {}, data).then(
-    (response: AxiosResponse) => {
-      const data = response.data.data;
-      return !Number.isNaN(Number(data)) || data.errorCode === "ALREADY_like";
-    }
-  );
+  return await requestAPI(apiLikePC, {}, data).then((data) => {
+    const rdata = data.data;
+    return !Number.isNaN(Number(rdata)) || rdata.errorCode === "ALREADY_like";
+  });
 }
