@@ -1,15 +1,21 @@
+import { isFullAutomaticEmulationEnabled } from "./";
 import {
   addMedal,
   addPCPlayPV,
   commitExam,
-  getAvailableGradeLevels,
   getBeforeResourcesByCategoryName,
   getCourseAnswers,
   getCoursesByGradeLevel,
   getSelfCoursesByGradeLevel,
   likePC,
 } from "./api";
-import { reqtoken } from "./consts";
+import {
+  coursesGradeLevels,
+  isLogined,
+  reqtoken,
+  selfCoursesGradeLevels,
+} from "./consts";
+import { customGradeLevels, customSelfGradeLevels } from "./menu";
 import {
   isNone,
   removeSpaces,
@@ -17,7 +23,6 @@ import {
   toDisplayAnswer,
   waitForElementLoaded,
 } from "./utils";
-import { isFullAutomaticEmulation } from ".";
 
 /// imports end
 
@@ -51,15 +56,16 @@ export async function startCourse(courseId: string): Promise<boolean> {
  * @param isSelfCourses 是否为自学
  */
 export async function taskCourses(isSelfCourses: boolean): Promise<void> {
-  // TODO 优化获取方式
-  // 似乎无法通过 API 获取自学年级名列表，目前只使用了手动列举
-  let gradeLevels = isSelfCourses
-    ? ["小学", "初中", "高中", "中职", "通用"]
-    : await getAvailableGradeLevels();
+  if (!isLogined()) {
+    showMessage("你还没有登录！", "red");
+    return;
+  }
+  let gradeLevels = await (isSelfCourses
+    ? selfCoursesGradeLevels
+    : coursesGradeLevels)();
   console.debug("获取总年级名列表", gradeLevels);
-  // ! ---- 加入年级选择 ----
-  gradeLevels = gradeLevels.filter((it) => it === "小学");
-  // ! --------------------
+  gradeLevels = isSelfCourses ? customSelfGradeLevels() : customGradeLevels();
+  console.debug("已选择的年级列表", gradeLevels);
   for (const gradeLevel of gradeLevels) {
     const coursesList = isSelfCourses
       ? await getSelfCoursesByGradeLevel(gradeLevel)
@@ -109,6 +115,10 @@ export async function taskCourses(isSelfCourses: boolean): Promise<void> {
  * 开始手动单个课程自动完成
  */
 export async function taskSingleCourse(): Promise<void> {
+  if (!isLogined()) {
+    showMessage("你还没有登录！", "red");
+    return;
+  }
   const courseId = location.pathname.match(/(\d+)/g)[0];
   const answers = await getCourseAnswers(courseId);
   await emulateExamination(
@@ -211,7 +221,7 @@ export async function emulateExamination(
         const displayAnswer = answer.split(",");
         // 获取最终的问题文本
         const finalQuestion = matchedQuestion || questionText;
-        if (!isFullAutomaticEmulation) {
+        if (!isFullAutomaticEmulationEnabled()) {
           showMessage(
             `${finalQuestion ? finalQuestion + "\n" : ""}第 ${
               count + 1
@@ -230,7 +240,7 @@ export async function emulateExamination(
         }
 
         // 如果是全自动，会自动点击下一题的按钮
-        if (isFullAutomaticEmulation) {
+        if (isFullAutomaticEmulationEnabled()) {
           nextButton.click();
         }
 
@@ -250,6 +260,10 @@ export async function emulateExamination(
  * 自动在课程视频页面添加 `跳过` 按钮
  */
 export async function taskSkip(): Promise<void> {
+  if (!isLogined()) {
+    showMessage("你还没有登录！", "red");
+    return;
+  }
   const courseId = location.pathname.match(/(\d+)/g)[0];
   const span = await waitForElementLoaded(
     "#app > div > div.home-container > div > div > div.course-title-box > div > a > span"
@@ -272,6 +286,10 @@ export async function taskSkip(): Promise<void> {
  * 自动获取学分
  */
 export async function taskGetCredit(): Promise<void> {
+  if (!isLogined()) {
+    showMessage("你还没有登录！", "red");
+    return;
+  }
   // 领取禁毒学子勋章
   const num = await addMedal();
   if (num !== undefined) {
@@ -312,7 +330,6 @@ export async function taskGetCredit(): Promise<void> {
       const resourceId = resource.resourceId;
       // 假播放
       // 新版青骄课堂改成了 `addPCPlayPV` 的 api，不再是 `sync`
-      // TODO 有待验证
       const resourceData = { resourceId, reqtoken: reqtoken() };
       const result = await addPCPlayPV(resourceData);
       if (result) {

@@ -1,4 +1,5 @@
 import { scriptName, scriptVersion } from "./consts";
+import { prepareMenu } from "./menu";
 import {
   taskCourses,
   taskGetCredit,
@@ -28,12 +29,12 @@ export const isTaskSingleCourseEnabled = getGMValue<boolean>(
   "qjh_isTaskSingleCourseEnabled",
   true
 );
-export const customGradeLevels = getGMValue<string[]>(
-  "qjh_customGradeLevels",
-  []
+export const isTaskSkipEnabled = getGMValue<boolean>(
+  "qjh_isTaskSkipEnabled",
+  true
 );
-export const isFullAutomaticEmulation = getGMValue<boolean>(
-  "qjh_isFullAutomaticEmulation",
+export const isFullAutomaticEmulationEnabled = getGMValue<boolean>(
+  "qjh_isFullAutomaticEmulationEnabled",
   false
 );
 
@@ -46,40 +47,41 @@ export let autoCompleteCreditsDone = getGMValue<boolean>(
 
 /* ------------ 功能 ------------ */
 type feature = {
+  key: string;
   title: string;
   matcher: RegExp | string[];
   task: Function;
-  enabled: boolean;
+  enabled: () => boolean;
 };
 
-const features: feature[] = [
+export const features: feature[] = [
   {
+    key: "courses",
     title: "自动完成所有课程（不包括考试）",
     matcher: ["/courses", "/drugControlClassroom/courses"],
     task: () => taskCourses(false),
-    // enabled: isTaskCoursesEnabled,
-    enabled: true,
+    enabled: isTaskCoursesEnabled,
   },
   {
+    key: "selfCourse",
     title: "自动完成所有自学课程（不包括考试）",
     matcher: ["/selfCourse", "/drugControlClassroom/selfCourse"],
     task: () => taskCourses(true),
-    // enabled: isTaskSelfCourseEnabled,
-    enabled: true,
+    enabled: isTaskSelfCourseEnabled,
   },
   {
-    title: "自动获取每日学分",
+    key: "credit",
+    title: "自动获取每日学分（会花费一段时间，请耐心等待）",
     matcher: ["/admin/creditCenter"],
     task: taskGetCredit,
-    // enabled: isTaskGetCreditEnabled,
-    enabled: true,
+    enabled: isTaskGetCreditEnabled,
   },
   {
-    title: "手动完成",
+    key: "singleCourse",
+    title: "单个课程自动完成",
     matcher: /\/courses\/exams\/(\d+)/,
     task: taskSingleCourse,
-    // enabled: isTaskSingleCourseEnabled,
-    enabled: true,
+    enabled: isTaskSingleCourseEnabled,
   },
   // {
   //   title: "知识竞赛",
@@ -94,10 +96,11 @@ const features: feature[] = [
   //   enabled: true,
   // },
   {
+    key: "skip",
     title: "显示课程视频跳过按钮",
     matcher: /\/courses\/(\d+)/,
     task: taskSkip,
-    enabled: true,
+    enabled: isTaskSkipEnabled,
   },
 ];
 
@@ -115,7 +118,7 @@ function triggerFeatures(): void {
       matcher instanceof RegExp
         ? location.pathname.match(matcher)
         : matcher.indexOf(location.pathname) !== -1;
-    if (isMatched && feature.enabled) {
+    if (isMatched && feature.enabled()) {
       showMessage(`激活功能：${feature.title}`, "green");
       feature.task();
     }
@@ -137,6 +140,7 @@ function triggerFeatures(): void {
   GM_addStyle(GM_getResourceText("spectrecss"));
   // 注册菜单
   GM_registerMenuCommand("菜单", showMenu);
+  prepareMenu();
 
   // 检测地址改变，并触发对应的功能
   let pathname = location.pathname;
@@ -153,9 +157,10 @@ function triggerFeatures(): void {
   triggerFeatures();
 
   // 如果 `自动完成` 功能启用，每次刷新页面就会执行以下函数，即依次开启所有功能
-  autoComplete = () =>
-    features.forEach((feature: feature) => {
-      showMessage(`自动激活功能：${feature.title}`, "green");
-      feature.task();
-    });
+  // TODO
+  // autoComplete = () =>
+  //   features.forEach((feature: feature) => {
+  //     showMessage(`自动激活功能：${feature.title}`, "green");
+  //     feature.task();
+  //   });
 })();

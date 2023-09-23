@@ -138,9 +138,12 @@ function getAllFilePaths(directoryPath: string): string[] {
   // 添加菜单 HTML 解析
   const menuHTML = fs.readFileSync(menuHTMLFile);
   resultFileContent.push(`const container = document.createElement("div");`);
+  resultFileContent.push(`container.setAttribute("id", "qjh-menu");`);
   resultFileContent.push("container.innerHTML = `" + menuHTML + "`;");
+  resultFileContent.push(`container.style.display = "none";`);
+  resultFileContent.push("document.body.appendChild(container); ");
   resultFileContent.push("function showMenu() {");
-  resultFileContent.push("  document.body.appendChild(container);");
+  resultFileContent.push(`  container.style.display = "unset";`);
   resultFileContent.push("}");
 
   // 生成文件

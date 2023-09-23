@@ -8,60 +8,125 @@
     right: 1%;
     top: 3%;
     width: 25%;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+  }
+
+  .form-inline {
+    display: inline-block;
   }
 </style>
 
 <div class="card container qjh-menu">
   <div class="card-header">
-    <div class="card-title h5">
-      QingJiaoHelper v0.3.0<button class="btn btn-link float-right">❌</button>
+    <div class="card-title text-bold h5" id="qjh-menu-title">
+      QingJiaoHelper
+      <button
+        class="btn btn-link float-right"
+        type="button"
+        id="qjh-menu-close-button"
+      >
+        ❌
+      </button>
     </div>
   </div>
 
   <div class="card-body">
     <div class="toast toast-warning">
-      ⚠注意：勾选的功能会在下一次刷新页面时<mark>自动激活</mark>，未勾选的功能只能手动启用！点击一键完成按钮可以在这个菜单中直接完成，而不用手动跳转到对应页面。
+      ⚠注意：勾选的功能会在下一次刷新页面时<mark><b>自动激活</b></mark
+      >，未勾选的功能只能手动启用！点击<b>一键完成</b>按钮可以在这个菜单中直接完成，而不用手动跳转到对应页面。
     </div>
 
     <div class="divider text-center" data-content="功能"></div>
 
     <div>
-      <div class="form-group">
+      <div class="form-group" id="qjh-menu-feat-courses">
         <label class="form-switch">
-          <b>完成所选课程（不包括考试）</b>
-          <input type="checkbox" />
-
+          <b>完成所选年级的课程</b>
+          <input
+            type="checkbox"
+            qjh-type="toggle"
+            qjh-key="qjh_isTaskCoursesEnabled"
+          />
           <i class="form-icon"></i>
-          <button class="btn btn-sm mx-2">一键完成👉</button>
-        </label>
-        <label class="form-checkbox form-inline mx-2">
-          <input type="checkbox" />
-          <i class="form-icon"></i> 高一
+          <button class="btn btn-sm mx-2" type="button" qjh-feat-key="courses">
+            一键完成👉
+          </button>
         </label>
       </div>
 
-      <div class="form-group">
+      <div class="form-group" id="qjh-menu-feat-self-courses">
         <label class="form-switch">
-          <b>完成所选自学课程（不包括考试）</b>
-          <input type="checkbox" />
+          <b>完成所选年级的自学课程</b>
+          <input
+            type="checkbox"
+            qjh-type="toggle"
+            qjh-key="qjh_isTaskSelfCourseEnabled"
+          />
           <i class="form-icon"></i>
-          <button class="btn btn-sm mx-2">一键完成👉</button>
+          <button
+            class="btn btn-sm mx-2"
+            type="button"
+            qjh-feat-key="selfCourse"
+          >
+            一键完成👉
+          </button>
         </label>
       </div>
 
       <div class="form-group">
         <label class="form-switch">
           <b>获取每日学分</b>
-          <input type="checkbox" />
+          <input
+            type="checkbox"
+            qjh-type="toggle"
+            qjh-key="qjh_isTaskGetCreditEnabled"
+          />
           <i class="form-icon"></i>
-          <button class="btn btn-sm mx-2">一键完成👉</button>
+          <button
+            class="btn btn-sm mx-2"
+            type="button"
+            onclick="taskGetCredit"
+            qjh-feat-key="credit"
+          >
+            一键完成👉
+          </button>
         </label>
       </div>
 
       <div class="form-group">
         <label class="form-switch">
-          <b>单个课程自动完成（自动填充答案并下一题）</b>
-          <input type="checkbox" />
+          <b>课程自动填充答案</b>
+          <input
+            type="checkbox"
+            qjh-type="toggle"
+            qjh-key="qjh_isTaskSingleCourseEnabled"
+          />
+          <i class="form-icon"></i>
+        </label>
+      </div>
+
+      <div class="form-group">
+        <label class="form-switch">
+          <b>自动下一题并提交（可以和<mark>课程自动填充答案</mark>配合使用）</b>
+          <input
+            type="checkbox"
+            qjh-type="toggle"
+            qjh-key="qjh_isFullAutomaticEmulationEnabled"
+          />
+          <i class="form-icon"></i>
+        </label>
+      </div>
+
+      <div class="form-group">
+        <label class="form-switch">
+          <b>显示课程视频跳过按钮</b>
+          <input
+            type="checkbox"
+            qjh-type="toggle"
+            qjh-key="qjh_isTaskSkipEnabled"
+          />
           <i class="form-icon"></i>
         </label>
       </div>
@@ -70,7 +135,7 @@
     </div>
   </div>
   <div class="card-footer text-gray">
-    QingJiaoHelper 由 WindLeaf233 以
+    本脚本由 WindLeaf233 以
     <b><a href="https://www.gnu.org/licenses/gpl-3.0.en.html">GPL-3.0</a></b>
     开源许可在 GitHub 开源，脚本地址：<a
       href="https://github.com/WindLeaf233/QingJiaoHelper"

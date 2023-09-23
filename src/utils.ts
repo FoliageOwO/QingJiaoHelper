@@ -52,13 +52,13 @@ export function isNone(obj: any | undefined | null): boolean {
  * @param defaultValue 默认值
  * @returns 值
  */
-export function getGMValue<T>(name: string, defaultValue: T): T {
+export function getGMValue<T>(name: string, defaultValue: T): () => T {
   let value = GM_getValue(name) as T;
   if (isNone(value)) {
     value = defaultValue;
     GM_setValue(name, defaultValue);
   }
-  return value;
+  return () => value;
 }
 
 /**
@@ -109,4 +109,27 @@ export function toDisplayAnswer(answers: any[]) {
     result = result + alphas[index];
   }
   return result;
+}
+
+/**
+ * 把元素节点列表转换为元素数组
+ * @param nodeList 元素节点列表
+ * @returns 元素数组
+ */
+export function nodeListToArray(nodeList: NodeList): Element[] {
+  return Array.prototype.slice.call(nodeList);
+}
+
+/**
+ * 把原年级名转为通用年级名
+ * @param gradeLevel 原年级名，如 `八年级`
+ * @returns 通用年级名，如 `初二`
+ */
+export function converToGenericGradeLevel(gradeLevel: string): string {
+  const mapping = {
+    七年级: "初一",
+    八年级: "初二",
+    九年级: "初三",
+  };
+  return mapping[gradeLevel];
 }
