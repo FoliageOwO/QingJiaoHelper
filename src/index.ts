@@ -129,7 +129,7 @@ function triggerFeatures(): void {
 (function () {
   // 加载 `__DATA__`
   for (let script of document.getElementsByTagName("script")) {
-    if (script.innerText.indexOf("window.__DATA__") != -1) {
+    if (script.innerText.indexOf("window.__DATA__") !== -1) {
       eval(script.innerText);
     }
   }

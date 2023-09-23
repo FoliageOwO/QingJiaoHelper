@@ -370,3 +370,10 @@ export async function taskGetCredit(): Promise<void> {
     }
   }, 500);
 }
+
+/**
+ * 开始完成期末考试
+ */
+export async function taskFinalExamination(): Promise<void> {
+  
+}
