@@ -60,3 +60,30 @@ export function getGMValue<T>(name: string, defaultValue: T): T {
   }
   return value;
 }
+
+/**
+ * 等待页面某个元素完全加载完成后执行回调函数
+ * @param querySelector 选择器
+ * @param callback 回调函数
+ */
+export function waitForElementLoaded(
+  querySelector: string,
+  callback: (element: HTMLElement) => void
+): void {
+  let attempts = 0;
+  const tryFind = () => {
+    const element = document.querySelector(querySelector) as HTMLElement;
+    if (element) {
+      callback(element);
+      return;
+    } else {
+      attempts++;
+      if (attempts >= 30) {
+        console.error(`无法找到元素 [${querySelector}]，已放弃！`);
+      } else {
+        setTimeout(tryFind, 250 * Math.pow(1.1, attempts));
+      }
+    }
+  };
+  tryFind();
+}

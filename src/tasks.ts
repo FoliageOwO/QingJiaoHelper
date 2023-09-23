@@ -1,3 +1,4 @@
+import { skip } from "node:test";
 import {
   commitExam,
   getAvailableGradeLevels,
@@ -6,7 +7,7 @@ import {
   getSelfCoursesByGradeLevel,
 } from "./api";
 import { reqtoken } from "./consts";
-import { isNone, showMessage } from "./utils";
+import { isNone, showMessage, waitForElementLoaded } from "./utils";
 
 /// imports end
 
@@ -92,4 +93,28 @@ export async function taskCourses(isSelfCourses: boolean): Promise<void> {
       "green"
     );
   }
+}
+
+/**
+ * 自动在课程视频页面添加 `跳过` 按钮
+ */
+export function taskSkip(): void {
+  const courseId = location.pathname.match(/(\d+)/g)[0];
+  waitForElementLoaded(
+    "#app > div > div.home-container > div > div > div.course-title-box > div > a > span",
+    (span) => {
+      span.style.display = "inline-flex";
+      const skipButton = document.createElement("button");
+      skipButton.type = "button";
+      // 和青骄第二课堂的按钮用同样的样式
+      skipButton.className = "ant-btn ant-btn-danger ant-btn-lg";
+      const skipSpan = document.createElement("span");
+      skipSpan.innerText = "跳过";
+      skipButton.appendChild(skipSpan);
+      skipButton.onclick = () => {
+        location.href = `/courses/exams/${courseId}`;
+      };
+      span.appendChild(skipButton);
+    }
+  );
 }

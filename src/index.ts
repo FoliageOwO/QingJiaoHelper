@@ -1,5 +1,5 @@
 import { scriptName, scriptVersion } from "./consts";
-import { taskCourses } from "./tasks";
+import { taskCourses, taskSkip } from "./tasks";
 import { featureNotAvailable, getGMValue, showMessage } from "./utils";
 
 /// imports end
@@ -69,12 +69,12 @@ const features: feature[] = [
   //   task: taskFinalExam,
   //   enabled: true,
   // },
-  // {
-  //   title: "课程视频跳过",
-  //   matcher: /\/courses\/(\d+)/,
-  //   task: taskSkip,
-  //   enabled: true,
-  // },
+  {
+    title: "显示课程视频跳过按钮",
+    matcher: /\/courses\/(\d+)/,
+    task: taskSkip,
+    enabled: true,
+  },
 ];
 
 /**
