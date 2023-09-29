@@ -97,6 +97,26 @@
 
       <div class="form-group">
         <label class="form-switch">
+          <b>期末考试</b>
+          <input
+            type="checkbox"
+            qjh-type="toggle"
+            qjh-key="qjh_isTaskFinalExaminationEnabled"
+          />
+          <i class="form-icon"></i>
+          <button
+            class="btn btn-sm mx-2"
+            type="button"
+            onclick="taskFinalExamination"
+            qjh-feat-key="finalExamination"
+          >
+            一键完成👉
+          </button>
+        </label>
+      </div>
+
+      <div class="form-group">
+        <label class="form-switch">
           <b>课程自动填充答案</b>
           <input
             type="checkbox"

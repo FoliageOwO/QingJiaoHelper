@@ -98,15 +98,30 @@ export function removeSpaces(string: string): string {
 }
 
 /**
- * 把数字答案转为可供查看的字母答案
- * @param answers 答案列表
+ * 把通用答案转为显示友好答案
+ * @param answers 通用答案，如 `0,1,2`
+ * @returns 显示友好答案，如 `ABC`
  */
-export function toDisplayAnswer(answers: any[]) {
+export function toDisplayAnswer(answer: string): string {
+  const alphas = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+  let result = "";
+  for (const singleAnswer of answer.split(",")) {
+    const index = Number(singleAnswer);
+    result = result + alphas[index];
+  }
+  return result;
+}
+
+/**
+ * 把显示友好答案转为通用答案
+ * @param answers 显示友好答案，如 `ABC`
+ * @returns 通用答案，如 `0,1,2`
+ */
+export function toAnswer(answers: string): string {
   const alphas = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
   let result = "";
   for (const answer of answers) {
-    const index = Number(answer);
-    result = result + alphas[index];
+    result = result + alphas.indexOf(answer);
   }
   return result;
 }
@@ -132,4 +147,88 @@ export function converToGenericGradeLevel(gradeLevel: string): string {
     九年级: "初三",
   };
   return mapping[gradeLevel];
+}
+
+/**
+ * 比较两个数组之间的差异并返回结果
+ * @param array1 第一个数组
+ * @param array2 第二个数组
+ * @returns 两个数组之间的差异的数组
+ */
+export function arrayDiff<T>(array1: T[], array2: T[]): T[] {
+  return array1.concat(array2).filter((v, _, array) => {
+    return array.indexOf(v) === array.lastIndexOf(v);
+  });
+}
+
+/**
+ * 在题库中精确匹配问题
+ * @param papers 待查找的问题列表
+ * @param question 网页显示的问题文本
+ * @returns 匹配出来的答案和真正的问题文本，匹配不到会返回 `null`
+ */
+export function accurateFind(
+  papers: { question: string; answer: string }[],
+  question: string
+): { answer: string; realQuestion: string } | null {
+  const result = papers.find((it) => removeSpaces(it.question) === question);
+  if (!isNone(result)) {
+    console.debug(`精确匹配问题：${question} → ${result.question}`);
+    return { answer: result.answer, realQuestion: question };
+  } else {
+    return null;
+  }
+}
+
+/**
+ * 在题库中模糊匹配问题
+ * @param papers 待查找的问题列表
+ * @param question 网页显示的问题文本
+ * @returns 匹配出来的答案和真正的问题文本
+ */
+export function fuzzyFind(
+  papers: { question: string; answer: string }[],
+  question: string
+): { answer: string; realQuestion: string } {
+  // 先把问题文本转为字符列表
+  const chars = question.split("");
+  // 取它的长度（即文本的长度）
+  const length = chars.length;
+  // 临时存储
+  const percentages: {
+    question: string;
+    answer: string;
+    unconfidence: number;
+  }[] = [];
+
+  for (const paper of papers) {
+    // 把题库中的问题文本转为字符列表
+    const questionChars = paper.question.split("");
+    // 比较原文本和题库的题，并拿到不重复的部分
+    const diff = arrayDiff(chars, questionChars);
+    // 取它的长度（即和当前问题文本不匹配的字符数量）
+    const diffLength = diff.length;
+    // 将不匹配的字符数量与原文本字符数量相除，得到不匹配度
+    const percentage = diffLength / length;
+    percentages.push({
+      question: paper.question,
+      answer: paper.answer,
+      unconfidence: percentage,
+    });
+  }
+
+  // 通过排序，获得不匹配度最低的（即匹配度最高的）
+  const theMostConfident = percentages.sort(
+    (a, b) => a.unconfidence - b.unconfidence
+  )[0];
+  // 获得匹配度最高的问题的问题文本和答案，返回
+  const theMostConfidentQuestion = theMostConfident.question;
+  const confidence = 1 - theMostConfident.unconfidence;
+  console.debug(
+    `模糊匹配问题（${confidence}）：${question} → ${theMostConfidentQuestion}`
+  );
+  return {
+    answer: theMostConfident.answer,
+    realQuestion: theMostConfidentQuestion,
+  };
 }

@@ -34,7 +34,7 @@ declare function GM_setValue(name: string, value: any): void;
 /**
  * 青骄课堂 API 类型定义
  */
-type api = {
+declare type api = {
   method: "GET" | "POST";
   api: string;
 };
@@ -43,3 +43,8 @@ type api = {
  * 外部菜单展示函数定义（在编译时添加的函数）
  */
 declare function showMenu(): void;
+
+/**
+ * lib2class 库类型定义
+ */
+declare const libs: any;

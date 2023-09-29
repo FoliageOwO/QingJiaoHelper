@@ -10,6 +10,7 @@ import {
   likePC,
 } from "./api";
 import {
+  accountGradeLevel,
   coursesGradeLevels,
   isLogined,
   reqtoken,
@@ -17,11 +18,14 @@ import {
 } from "./consts";
 import { customGradeLevels, customSelfGradeLevels } from "./menu";
 import {
+  accurateFind,
+  fuzzyFind,
   isNone,
   removeSpaces,
   showMessage,
   toDisplayAnswer,
   waitForElementLoaded,
+  toAnswer,
 } from "./utils";
 
 /// imports end
@@ -127,10 +131,9 @@ export async function taskSingleCourse(): Promise<void> {
     "#app > div > div.home-container > div > div > div > div > div > div.exam-content-btnbox > button",
     "#app > div > div.home-container > div > div > div > div > div > div.exam-content-btnbox > div > button.ant-btn-primary",
     (answers, _) => {
-      const firstAnswer = answers.shift().toString();
+      const firstAnswer: string = answers.shift().toString();
       return {
-        answer: toDisplayAnswer(firstAnswer.split(",")),
-        answerIndexes: firstAnswer.split(","),
+        answer: firstAnswer,
         matchedQuestion: null,
       };
     },
@@ -145,22 +148,21 @@ export async function taskSingleCourse(): Promise<void> {
  * @param startButtonSelector 开始按钮选择器
  * @param primaryNextButtonSelector 初下一题按钮选择器
  * @param secondaryNextButtonSelector 次下一题按钮选择器
- * @param nextAnswerHandler 下一个答案处理器，传入答案和问题并由该处理器处理完毕后返回答案和匹配到的问题至本函数
+ * @param answerHandler 答案处理器，传入答案和问题并由该处理器处理完毕后返回答案和匹配到的问题至本函数
  * @param examinationName 答题名称
  * @param size
  */
 export async function emulateExamination(
-  answers: any[],
+  answers: string[],
   startButtonSelector: string,
   primaryNextButtonSelector: string,
   secondaryNextButtonSelector: string,
-  nextAnswerHandler: (
-    answers: any[],
+  answerHandler: (
+    answers: string[],
     question: string
   ) => {
     answer: string;
-    answerIndexes: string[];
-    matchedQuestion: string | undefined;
+    matchedQuestion: string | null;
   },
   examinationName: string,
   size = 100
@@ -174,7 +176,10 @@ export async function emulateExamination(
    * @param nextAnswers 下一题的答案
    * @param nextButton 下一题按钮，可以是初下一题按钮，也可以是次下一题按钮，也可以是提交按钮
    */
-  const next = async (nextAnswers: any[], nextButton: HTMLElement = null) => {
+  const next = async (
+    nextAnswers: string[],
+    nextButton: HTMLElement = null
+  ) => {
     // 获取问题元素
     const questionElement = await waitForElementLoaded(
       ".exam-content-question"
@@ -206,19 +211,15 @@ export async function emulateExamination(
           return;
         };
 
-        // answer -> ABC
-        // answerIndexs -> 1,2,3
+        // answer -> 1,2,3
         // `matchedQuestion` 为在题库匹配到的问题，可以是模糊匹配，也可以是精确匹配
-        let { answer, answerIndexes, matchedQuestion } = nextAnswerHandler(
-          answers,
-          questionText
-        );
+        let { answer, matchedQuestion } = answerHandler(answers, questionText);
         // 获取选择框元素，有很多个
         const selections = document.getElementsByClassName(
           "exam-single-content-box"
         );
         console.debug("选择", answer, selections);
-        const displayAnswer = answer.split(",");
+        const displayAnswer = toDisplayAnswer(answer);
         // 获取最终的问题文本
         const finalQuestion = matchedQuestion || questionText;
         if (!isFullAutomaticEmulationEnabled()) {
@@ -231,10 +232,8 @@ export async function emulateExamination(
         }
 
         // 自动选择答案
-        for (const answerIndex of answerIndexes) {
-          const selectionElement = selections[
-            Number(answerIndex)
-          ] as HTMLElement;
+        for (const answerIndex of answer.split(",").map((it) => Number(it))) {
+          const selectionElement = selections[answerIndex] as HTMLElement;
           // 模拟点击
           selectionElement.click();
         }
@@ -375,5 +374,39 @@ export async function taskGetCredit(): Promise<void> {
  * 开始完成期末考试
  */
 export async function taskFinalExamination(): Promise<void> {
-  
+  const supportedFinal: { [gradeLevel: string]: string } = libs.supportedFinal;
+  // 如果用户的账号年级已被支持
+  const gradeLevel = accountGradeLevel();
+  if (supportedFinal.hasOwnProperty(gradeLevel)) {
+    const paperName = supportedFinal[gradeLevel];
+    let papers: {
+      question: string;
+      answer: string;
+    }[] = libs[paperName];
+
+    papers = papers.map((it) => {
+      // it.answer -> ABC
+      return { question: it.question, answer: toAnswer(it.answer) };
+    });
+
+    await emulateExamination(
+      papers.map((it) => it.answer),
+      "#app > div > div.home-container > div > div > div > div > div > button",
+      "#app > div > div.home-container > div > div > div > div > div > div.exam-content-btnbox > button",
+      "#app > div > div.home-container > div > div > div > div > div > div.exam-content-btnbox > div > button.ant-btn.ant-btn-primary",
+      (_, question) => {
+        const { answer, realQuestion } =
+          accurateFind(papers, question) || fuzzyFind(papers, question);
+        return {
+          answer,
+          matchedQuestion: realQuestion,
+        };
+      },
+      "期末考试",
+      10 // TODO 这个 10 是干什么的我还没搞清楚，之后再说
+    );
+  } else {
+    showMessage(`你的年级 [${gradeLevel}] 暂未支持期末考试！`, "red");
+    return;
+  }
 }

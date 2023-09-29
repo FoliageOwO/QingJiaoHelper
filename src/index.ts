@@ -2,6 +2,7 @@ import { scriptName, scriptVersion } from "./consts";
 import { prepareMenu } from "./menu";
 import {
   taskCourses,
+  taskFinalExamination,
   taskGetCredit,
   taskSingleCourse,
   taskSkip,
@@ -13,27 +14,28 @@ import { featureNotAvailable, getGMValue, showMessage } from "./utils";
 ("use strict");
 
 /* ------------ 动态值 ------------ */
-export const isTaskCoursesEnabled = getGMValue<boolean>(
+export const isTaskCoursesEnabled = getGMValue(
   "qjh_isTaskCoursesEnabled",
   false
 );
-export const isTaskSelfCourseEnabled = getGMValue<boolean>(
+export const isTaskSelfCourseEnabled = getGMValue(
   "qjh_isTaskSelfCourseEnabled",
   false
 );
-export const isTaskGetCreditEnabled = getGMValue<boolean>(
+export const isTaskGetCreditEnabled = getGMValue(
   "qjh_isTaskGetCreditEnabled",
   false
 );
-export const isTaskSingleCourseEnabled = getGMValue<boolean>(
+export const isTaskSingleCourseEnabled = getGMValue(
   "qjh_isTaskSingleCourseEnabled",
   true
 );
-export const isTaskSkipEnabled = getGMValue<boolean>(
-  "qjh_isTaskSkipEnabled",
-  true
+export const isTaskSkipEnabled = getGMValue("qjh_isTaskSkipEnabled", true);
+export const isTaskFinalExaminationEnabled = getGMValue(
+  "qjh_isTaskFinalExaminationEnabled",
+  false
 );
-export const isFullAutomaticEmulationEnabled = getGMValue<boolean>(
+export const isFullAutomaticEmulationEnabled = getGMValue(
   "qjh_isFullAutomaticEmulationEnabled",
   false
 );
@@ -89,12 +91,13 @@ export const features: feature[] = [
   //   task: taskCompetition,
   //   enabled: true,
   // },
-  // {
-  //   title: "期末考试",
-  //   matcher: ["/courses/exams/finalExam"],
-  //   task: taskFinalExam,
-  //   enabled: true,
-  // },
+  {
+    key: "finalExamination",
+    title: "期末考试",
+    matcher: ["/courses/exams/finalExam"],
+    task: taskFinalExamination,
+    enabled: isTaskFinalExaminationEnabled,
+  },
   {
     key: "skip",
     title: "显示课程视频跳过按钮",

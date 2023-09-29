@@ -16,7 +16,7 @@
   "supportURL": "https://github.com/WindLeaf233/QingJiaoHelper",
   "require": [
     "https://cdn.bootcdn.net/ajax/libs/toastify-js/1.12.0/toastify.min.js",
-    "https://greasyfork.org/scripts/453791-lib2class/code/lib2class.js?version=1110537",
+    "https://cdn.jsdelivr.net/gh/WindLeaf233/lib2class/lib2class.js",
     "https://cdn.bootcdn.net/ajax/libs/axios/1.3.6/axios.min.js"
   ],
   "resource": {

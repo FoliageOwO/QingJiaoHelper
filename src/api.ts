@@ -138,16 +138,16 @@ export async function getTestPaperList(courseId: string): Promise<any[]> {
 /**
  * 获取指定课程 ID 的考试题答案列表
  * @param courseId 课程 ID
- * @returns 考试题答案列表
+ * @returns 答案列表，如 ["1,2", "0,1", "2,3"]
  */
 export async function getCourseAnswers(
   courseId: string
-): Promise<any[] | null> {
+): Promise<string[] | null> {
   return await getTestPaperList(courseId).then((testPaperList) => {
     if (!isNone(testPaperList)) {
-      const answers = testPaperList.map((column) => column.answer);
+      const answers = testPaperList.map((column) => column.answer) as string[];
       console.debug(`成功获取课程 [${courseId}] 的答案`, answers);
-      return answers;
+      return answers.map((it) => it.split("").join(","));
     } else {
       return null;
     }
@@ -167,7 +167,7 @@ export async function commitExam(data: any): Promise<any> {
  * 领取禁毒学子勋章
  * @returns 如果获取成功，返回徽章的序号
  */
-export async function addMedal(): Promise<Number | undefined> {
+export async function addMedal(): Promise<number | undefined> {
   return await requestAPI(apiAddMedal).then((data) => {
     const flag = data.flag;
     const num = data.medalNum;
