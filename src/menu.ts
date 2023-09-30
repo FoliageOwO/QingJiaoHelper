@@ -103,7 +103,6 @@ export async function prepareMenu() {
     const key = toggleInput.getAttribute("qjh-key");
     toggleInput.checked = GM_getValue(key);
     toggleInput.onchange = () => {
-      console.log("onchange", toggleInput, toggleInput.checked);
       GM_setValue(key, toggleInput.checked);
     };
   }

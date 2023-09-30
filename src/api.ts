@@ -56,7 +56,8 @@ export async function requestAPI(
   data?: object
 ): Promise<any> {
   const method = api.method;
-  let url = `https://www.2-class.com/api${api.api}`;
+  const origin = location.origin;
+  let url = `${origin}/api${api.api}`;
   for (const key in params) {
     url = url.replaceAll("${" + key + "}", params[key]);
   }
