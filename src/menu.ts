@@ -14,14 +14,10 @@ import {
 /// imports end
 
 /* ------------ 渲染菜单 ------------ */
-export const customGradeLevels = getGMValue<string[]>(
-  "qjh_customGradeLevels",
-  []
-);
-export const customSelfGradeLevels = getGMValue<string[]>(
-  "qjh_customSelfGradeLevels",
-  []
-);
+export const customGradeLevels = () =>
+  getGMValue<string[]>("qjh_customGradeLevels", []);
+export const customSelfGradeLevels = () =>
+  getGMValue<string[]>("qjh_customSelfGradeLevels", []);
 
 /**
  * 解析菜单 HTML
@@ -107,6 +103,7 @@ export async function prepareMenu() {
     const key = toggleInput.getAttribute("qjh-key");
     toggleInput.checked = GM_getValue(key);
     toggleInput.onchange = () => {
+      console.log("onchange", toggleInput, toggleInput.checked);
       GM_setValue(key, toggleInput.checked);
     };
   }

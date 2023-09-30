@@ -52,13 +52,13 @@ export function isNone(obj: any | undefined | null): boolean {
  * @param defaultValue 默认值
  * @returns 值
  */
-export function getGMValue<T>(name: string, defaultValue: T): () => T {
+export function getGMValue<T>(name: string, defaultValue: T): T {
   let value = GM_getValue(name) as T;
   if (isNone(value)) {
     value = defaultValue;
     GM_setValue(name, defaultValue);
   }
-  return () => value;
+  return value;
 }
 
 /**

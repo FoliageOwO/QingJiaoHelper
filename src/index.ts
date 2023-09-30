@@ -14,38 +14,25 @@ import { featureNotAvailable, getGMValue, showMessage } from "./utils";
 ("use strict");
 
 /* ------------ 动态值 ------------ */
-export const isTaskCoursesEnabled = getGMValue(
-  "qjh_isTaskCoursesEnabled",
-  false
-);
-export const isTaskSelfCourseEnabled = getGMValue(
-  "qjh_isTaskSelfCourseEnabled",
-  false
-);
-export const isTaskGetCreditEnabled = getGMValue(
-  "qjh_isTaskGetCreditEnabled",
-  false
-);
-export const isTaskSingleCourseEnabled = getGMValue(
-  "qjh_isTaskSingleCourseEnabled",
-  true
-);
-export const isTaskSkipEnabled = getGMValue("qjh_isTaskSkipEnabled", true);
-export const isTaskFinalExaminationEnabled = getGMValue(
-  "qjh_isTaskFinalExaminationEnabled",
-  false
-);
-export const isFullAutomaticEmulationEnabled = getGMValue(
-  "qjh_isFullAutomaticEmulationEnabled",
-  false
-);
+export const isTaskCoursesEnabled = () =>
+  getGMValue("qjh_isTaskCoursesEnabled", false);
+export const isTaskSelfCourseEnabled = () =>
+  getGMValue("qjh_isTaskSelfCourseEnabled", false);
+export const isTaskGetCreditEnabled = () =>
+  getGMValue("qjh_isTaskGetCreditEnabled", false);
+export const isTaskSingleCourseEnabled = () =>
+  getGMValue("qjh_isTaskSingleCourseEnabled", true);
+export const isTaskSkipEnabled = () =>
+  getGMValue("qjh_isTaskSkipEnabled", true);
+export const isTaskFinalExaminationEnabled = () =>
+  getGMValue("qjh_isTaskFinalExaminationEnabled", false);
+export const isFullAutomaticEmulationEnabled = () =>
+  getGMValue("qjh_isFullAutomaticEmulationEnabled", false);
 
 /* ------------ 自动完成的一些值 ------------ */
 export let autoComplete = () => featureNotAvailable("自动完成");
-export let autoCompleteCreditsDone = getGMValue<boolean>(
-  "qjh_autoCompleteCreditsDone",
-  false
-);
+export let autoCompleteCreditsDone = () =>
+  getGMValue("qjh_autoCompleteCreditsDone", false);
 
 /* ------------ 功能 ------------ */
 type feature = {
