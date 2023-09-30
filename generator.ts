@@ -13,7 +13,7 @@ type metadata = {
   version: string;
   description: string;
   author: string;
-  match: string;
+  match: string[];
   grant: string[];
   license: string;
   supportURL: string;
