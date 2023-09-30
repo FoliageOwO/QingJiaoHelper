@@ -1,6 +1,6 @@
-import axios, { AxiosResponse } from "axios";
+import axios, { AxiosError, AxiosResponse } from "axios";
 
-import { isNone } from "./utils";
+import { isNone, showMessage } from "./utils";
 
 /// imports end
 
@@ -54,21 +54,42 @@ export async function requestAPI(
   api: api,
   params?: object,
   data?: object
-): Promise<any> {
+): Promise<any | null> {
   const method = api.method;
-  const origin = location.origin;
+  // const origin = location.origin;
+  const origin = "https://www.2-class.com";
   let url = `${origin}/api${api.api}`;
   for (const key in params) {
     url = url.replaceAll("${" + key + "}", params[key]);
   }
   if (method === "GET") {
-    return await axios({ method: "GET", url }).then(
-      (response: AxiosResponse) => {
+    return await axios({ method: "GET", url })
+      .then((response: AxiosResponse) => {
         const rdata = response.data;
         console.debug(`[${method}] ${url}`, data, rdata);
-        return rdata;
-      }
-    );
+        if (rdata.success === false || rdata.data === null) {
+          const errorMessage: string = rdata.errorMsg;
+          const errorCode: string = rdata.errorCode;
+          console.error(
+            `API 返回错误 [${errorCode}]：${errorMessage}，请刷新页面重试！`
+          );
+          return null;
+        } else {
+          return rdata;
+        }
+      })
+      .catch((reason: AxiosError) => {
+        showMessage(
+          `请求 API 失败（${reason.code}）：${reason.message}\n请将控制台中的具体报错提交！`,
+          "red"
+        );
+        console.error(
+          `请求失败（${reason.status}/${reason.code}）→${reason.message}→`,
+          reason.toJSON(),
+          reason.response,
+          reason.stack
+        );
+      });
   } else {
     return await axios({
       method: "POST",
@@ -80,7 +101,16 @@ export async function requestAPI(
     }).then((response: AxiosResponse) => {
       const rdata = response.data;
       console.debug(`[${method}] ${url}`, data, rdata);
-      return rdata;
+      if (rdata.success === false || rdata.data === null) {
+        const errorMessage: string = rdata.errorMsg;
+        const errorCode: string = rdata.errorCode;
+        console.error(
+          `API 返回错误 [${errorCode}]：${errorMessage}，请刷新页面重试！`
+        );
+        return null;
+      } else {
+        return rdata;
+      }
     });
   }
 }
@@ -89,9 +119,9 @@ export async function requestAPI(
  * 获取所有的年级名，如五年级
  * @returns 所有年级名
  */
-export async function getAvailableGradeLevels(): Promise<string[]> {
+export async function getAvailableGradeLevels(): Promise<string[] | null> {
   return await requestAPI(apiGetGradeLevels).then((data) => {
-    return data.data.map((it: any) => it.value);
+    return data ? data.data.map((it: any) => it.value) : null;
   });
 }
 
@@ -102,11 +132,11 @@ export async function getAvailableGradeLevels(): Promise<string[]> {
  */
 export async function getCoursesByGradeLevel(
   gradeLevel: string
-): Promise<any[]> {
+): Promise<any[] | null> {
   return await requestAPI(apiGetCoursesByGradeLevel, {
     grade: gradeLevel,
   }).then((data) => {
-    return data.data.list;
+    return data ? data.data.list : null;
   });
 }
 
@@ -117,11 +147,11 @@ export async function getCoursesByGradeLevel(
  */
 export async function getSelfCoursesByGradeLevel(
   gradeLevel: string
-): Promise<any[]> {
+): Promise<any[] | null> {
   return await requestAPI(apiGetSelfCoursesByGradeLevel, {
     grade: gradeLevel,
   }).then((data) => {
-    return data.data.list;
+    return data ? data.data.list : null;
   });
 }
 
@@ -130,9 +160,11 @@ export async function getSelfCoursesByGradeLevel(
  * @param courseId 课程 ID
  * @returns 考试题列表
  */
-export async function getTestPaperList(courseId: string): Promise<any[]> {
+export async function getTestPaperList(
+  courseId: string
+): Promise<any[] | null> {
   return await requestAPI(apiGetTestPaperList, { courseId }).then((data) => {
-    return data.data.testPaperList;
+    return data ? data.data.testPaperList : null;
   });
 }
 
@@ -150,6 +182,7 @@ export async function getCourseAnswers(
       console.debug(`成功获取课程 [${courseId}] 的答案`, answers);
       return answers.map((it) => it.split("").join(","));
     } else {
+      console.error(`无法获取课程 [${courseId}] 答案！`);
       return null;
     }
   });
@@ -160,7 +193,7 @@ export async function getCourseAnswers(
  * @param data 考试数据
  * @returns 请求后的 API 返回数据
  */
-export async function commitExam(data: any): Promise<any> {
+export async function commitExam(data: any): Promise<any | null> {
   return await requestAPI(apiCommitExam, {}, data);
 }
 
@@ -168,14 +201,18 @@ export async function commitExam(data: any): Promise<any> {
  * 领取禁毒学子勋章
  * @returns 如果获取成功，返回徽章的序号
  */
-export async function addMedal(): Promise<number | undefined> {
+export async function addMedal(): Promise<number | null | undefined> {
   return await requestAPI(apiAddMedal).then((data) => {
-    const flag = data.flag;
-    const num = data.medalNum;
-    if (flag) {
-      return num;
+    if (isNone(data)) {
+      return null;
     } else {
-      return undefined;
+      const flag = data.flag;
+      const num = data.medalNum;
+      if (flag) {
+        return num;
+      } else {
+        return undefined;
+      }
     }
   });
 }
@@ -185,19 +222,24 @@ export async function addMedal(): Promise<number | undefined> {
  * @returns 资源对象
  */
 export async function getBeforeResourcesByCategoryName(data: object): Promise<
-  {
-    title: string;
-    resourceId: string;
-  }[]
+  | {
+      title: string;
+      resourceId: string;
+    }[]
+  | null
 > {
   return await requestAPI(apiGetBeforeResourcesByCategoryName, {}, data).then(
     (data) =>
-      data.data.list.map((it: { briefTitle: string; resourceId: string }) => {
-        return {
-          title: it.briefTitle,
-          resourceId: it.resourceId,
-        };
-      })
+      data
+        ? data.data.list.map(
+            (it: { briefTitle: string; resourceId: string }) => {
+              return {
+                title: it.briefTitle,
+                resourceId: it.resourceId,
+              };
+            }
+          )
+        : null
   );
 }
 
@@ -206,9 +248,9 @@ export async function getBeforeResourcesByCategoryName(data: object): Promise<
  * @param data 资源数据
  * @returns 是否成功
  */
-export async function addPCPlayPV(data: object): Promise<boolean> {
+export async function addPCPlayPV(data: object): Promise<boolean | null> {
   return await requestAPI(apiAddPCPlayPV, {}, data).then((data) => {
-    return data.data.result;
+    return data ? data.data.result : null;
   });
 }
 
@@ -217,9 +259,13 @@ export async function addPCPlayPV(data: object): Promise<boolean> {
  * @param data 点赞数据
  * @returns 是否点赞成功
  */
-export async function likePC(data: object): Promise<boolean> {
+export async function likePC(data: object): Promise<boolean | null> {
   return await requestAPI(apiLikePC, {}, data).then((data) => {
-    const rdata = data.data;
-    return !Number.isNaN(Number(rdata)) || rdata.errorCode === "ALREADY_like";
+    if (isNone(data)) {
+      return null;
+    } else {
+      const rdata = data.data;
+      return !Number.isNaN(Number(rdata)) || rdata.errorCode === "ALREADY_like";
+    }
   });
 }

@@ -38,20 +38,25 @@ import {
  */
 export async function startCourse(courseId: string): Promise<boolean> {
   const answers = await getCourseAnswers(courseId);
-  console.debug(`正在提交课程 [${courseId}] 答案...`);
-  const data = {
-    courseId,
-    examCommitReqDataList: answers.map((answer, index) => {
-      return {
-        examId: index + 1, // examId = index + 1
-        answer: Number(answer) || answer, // 如果是单选，则必须要为数字
-      };
-    }),
-    reqtoken: reqtoken(),
-  };
-  const response = await commitExam(data);
-  console.debug(`提交课程 [${data.courseId}] 答案`, response);
-  return !isNone(response);
+  if (answers === null) {
+    showMessage(`[${courseId}] 无法获取当前课程的答案！`, "red");
+    return false;
+  } else {
+    console.debug(`正在提交课程 [${courseId}] 答案...`);
+    const data = {
+      courseId,
+      examCommitReqDataList: answers.map((answer, index) => {
+        return {
+          examId: index + 1, // examId = index + 1
+          answer: Number(answer) || answer, // 如果是单选，则必须要为数字
+        };
+      }),
+      reqtoken: reqtoken(),
+    };
+    const response = await commitExam(data);
+    console.debug(`提交课程 [${data.courseId}] 答案`, response);
+    return !isNone(response);
+  }
 }
 
 /**
@@ -67,6 +72,10 @@ export async function taskCourses(isSelfCourses: boolean): Promise<void> {
   let gradeLevels = await (isSelfCourses
     ? selfCoursesGradeLevels
     : coursesGradeLevels)();
+  if (gradeLevels === null) {
+    showMessage(`获取年级名列表失败，功能已中止！`, "red");
+    return;
+  }
   console.debug("获取总年级名列表", gradeLevels);
   gradeLevels = isSelfCourses ? customSelfGradeLevels() : customGradeLevels();
   console.debug("已选择的年级列表", gradeLevels);
@@ -74,6 +83,12 @@ export async function taskCourses(isSelfCourses: boolean): Promise<void> {
     const coursesList = isSelfCourses
       ? await getSelfCoursesByGradeLevel(gradeLevel)
       : await getCoursesByGradeLevel(gradeLevel);
+    if (coursesList === null) {
+      showMessage(
+        `[${gradeLevel}] 获取当前年级的课程列表失败，已跳过当前年级！`,
+        "red"
+      );
+    }
     // 忽略已完成的和期末考试
     const courseIds = coursesList
       .filter((it) => !it.isFinish && it.title !== "期末考试")
@@ -101,9 +116,11 @@ export async function taskCourses(isSelfCourses: boolean): Promise<void> {
         const result = await startCourse(courseId);
         if (result) {
           committed++;
+        } else {
+          console.error(`[${courseId}] 无法提交当前课程，已跳过！`);
         }
       } else {
-        console.debug(`[${gradeLevel}] 无法找到 courseId，已跳过！`);
+        console.error(`[${gradeLevel}] 无法找到 courseId，已跳过！`);
       }
     }
 
@@ -293,8 +310,10 @@ export async function taskGetCredit(): Promise<void> {
   const num = await addMedal();
   if (num !== undefined) {
     showMessage(`成功领取禁毒徽章 [${num}]!`, "green");
+  } else if (num === null) {
+    showMessage("领取徽章失败！", "red");
   } else {
-    console.debug(`无法领取徽章（可能已领取过），已跳过！`);
+    console.warn("无法领取徽章（可能已领取过），已跳过！");
   }
 
   // 完成耕读课堂
@@ -323,6 +342,10 @@ export async function taskGetCredit(): Promise<void> {
       tag: category.tag,
     };
     const resources = await getBeforeResourcesByCategoryName(data);
+    if (resources === null) {
+      console.error(`无法获取分类 ${category.name} 的资源，已跳过！`);
+      continue;
+    }
     console.debug(`获取分类 ${category.name} 的资源`, resources);
 
     for (const resource of resources) {
@@ -335,7 +358,7 @@ export async function taskGetCredit(): Promise<void> {
         console.debug(`成功完成资源 [${resourceId}]：${resource.title}`);
         done++;
       } else {
-        console.debug(`无法完成资源 ${resourceId}，已跳过！`);
+        console.error(`无法完成资源 ${resourceId}，已跳过！`);
         failed++;
       }
 
@@ -345,7 +368,7 @@ export async function taskGetCredit(): Promise<void> {
         console.debug(`成功点赞资源 [${resourceId}]！`);
         liked++;
       } else {
-        console.error(`资源点赞失败 [${resourceId}]！`);
+        console.error(`资源点赞失败 [${resourceId}]，已跳过！`);
       }
     }
   }

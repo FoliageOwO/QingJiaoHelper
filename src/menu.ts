@@ -26,6 +26,9 @@ export async function prepareMenu() {
   const menuElement = await waitForElementLoaded("#qjh-menu");
   const coursesGradeLevelsList = await coursesGradeLevels();
   const selfCoursesGradeLevelsList = await selfCoursesGradeLevels();
+  if (coursesGradeLevels === null || selfCoursesGradeLevelsList === null) {
+    showMessage(`课程年级列表或自学课程年级列表获取失败！`, "red");
+  }
 
   // 标题添加版本号
   const titleElement = await waitForElementLoaded("#qjh-menu-title");
@@ -55,6 +58,9 @@ export async function prepareMenu() {
     },
   ]) {
     const element = await waitForElementLoaded(selector);
+    if (gradeLevels === null) {
+      continue;
+    }
     for (const gradeLevel of gradeLevels) {
       const label = document.createElement("label");
       label.className = "form-checkbox form-inline";

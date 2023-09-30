@@ -32,7 +32,7 @@ export function showMessage(text: string, color: string): void {
  */
 export function featureNotAvailable(name: string = "(未知)"): void {
   showMessage(
-    `${name} 功能当前不可用，请尝试刷新页面。如果没用请上报这个 bug！`,
+    `${name} 功能当前不可用，请尝试刷新页面。如果问题依旧请上报这个 bug！`,
     "red"
   );
 }
