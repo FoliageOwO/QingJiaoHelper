@@ -2,6 +2,7 @@
   "compilerOptions": {
     "moduleResolution": "NodeNext",
     "target": "ESNext",
-    "module": "NodeNext"
+    "module": "NodeNext",
+    "noEmitHelpers": true
   }
 }

@@ -1,5 +1,13 @@
 import { exec } from "child_process";
-import * as fs from "fs";
+// import * as fs from "fs";
+import {
+  readdirSync,
+  statSync,
+  readFileSync,
+  existsSync,
+  rmSync,
+  writeFileSync,
+} from "fs";
 
 const srcDirectory = "./src";
 const distFile = "./dist.ts";
@@ -30,6 +38,9 @@ function handleFileContent(content: string): string {
   const resultContent: string[] = [];
   let importsEnd = false;
   for (let line of content.split(/\r?\n/)) {
+    // 把 unicode 文本转换为 utf-8 文本
+    line = unicodeToText(line);
+
     // 跳过 `import` 段
     if (line === "/// imports end") {
       importsEnd = true;
@@ -39,10 +50,29 @@ function handleFileContent(content: string): string {
     if (importsEnd) {
       // 删除每一行的 `export`
       line = line.replace("export ", "");
-      resultContent.push(line);
+      // 删除注释
+      const pure = line.trim();
+      if (
+        !pure.startsWith("/*") &&
+        !pure.startsWith("*") &&
+        !pure.startsWith("//")
+      ) {
+        resultContent.push(line);
+      }
     }
   }
   return resultContent.join("\n");
+}
+
+/**
+ * 将 unicode 文本转换为普通文本
+ * @param text 带有 unicode 的文本
+ * @returns 普通文本
+ */
+function unicodeToText(text: string) {
+  return text.replace(/\\u[\dA-F]{4}/gi, (match) => {
+    return String.fromCharCode(parseInt(match.replace(/\\u/g, ""), 16));
+  });
 }
 
 /**
@@ -51,10 +81,10 @@ function handleFileContent(content: string): string {
  */
 function getAllFilePaths(directoryPath: string): string[] {
   const result: string[] = [];
-  const files = fs.readdirSync(directoryPath);
+  const files = readdirSync(directoryPath);
   for (const filePath of files) {
     const path = `${directoryPath}/${filePath}`;
-    const stats = fs.statSync(path);
+    const stats = statSync(path);
     if (stats.isDirectory()) {
       result.push(...getAllFilePaths(path));
     } else {
@@ -71,7 +101,7 @@ function getAllFilePaths(directoryPath: string): string[] {
   let resultFileContent: string[] = [];
 
   // 解析元信息
-  const metadataContent = fs.readFileSync(metadataFile, "utf-8");
+  const metadataContent = readFileSync(metadataFile, "utf-8");
   const metadata: metadata = JSON.parse(metadataContent);
   const metadataLines: string[] = [];
   metadataLines.push("// ==UserScript==");
@@ -127,7 +157,7 @@ function getAllFilePaths(directoryPath: string): string[] {
   for (const filePath of files) {
     // 跳过 `.d.ts`
     if (!filePath.endsWith(".d.ts")) {
-      const content = fs.readFileSync(filePath, "utf-8");
+      const content = readFileSync(filePath, "utf-8");
       if (content !== undefined) {
         const resultContent = handleFileContent(content);
         resultFileContent.push(resultContent);
@@ -136,7 +166,7 @@ function getAllFilePaths(directoryPath: string): string[] {
   }
 
   // 添加菜单 HTML 解析
-  const menuHTML = fs.readFileSync(menuHTMLFile);
+  const menuHTML = readFileSync(menuHTMLFile);
   resultFileContent.push(`const container = document.createElement("div");`);
   resultFileContent.push(`container.setAttribute("id", "qjh-menu");`);
   resultFileContent.push("container.innerHTML = `" + menuHTML + "`;");
@@ -148,11 +178,20 @@ function getAllFilePaths(directoryPath: string): string[] {
 
   // 生成文件
   [distFile, distFileJS].forEach((path) => {
-    if (fs.existsSync(path)) {
-      fs.rmSync(path);
+    if (existsSync(path)) {
+      rmSync(path);
     }
   });
+
   const result = resultFileContent.join("\n");
-  fs.writeFileSync(distFile, result, "utf-8");
-  exec(`tsc ${distFile}`);
+  writeFileSync(distFile, result, "utf-8");
+
+  // 执行编译
+  exec(`tsc ${distFile} --noEmitHelpers`, (_, stdout) => {
+    for (const line of stdout.split("\n")) {
+      if (line.lastIndexOf("Cannot find name") === -1) {
+        console.log(line);
+      }
+    }
+  });
 })();
