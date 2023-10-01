@@ -193,5 +193,10 @@ function getAllFilePaths(directoryPath: string): string[] {
         console.log(line);
       }
     }
+
+    // tsc 编译后又会变成 unicode
+    // 因此需要两次转 utf-8
+    const content = readFileSync(distFileJS, "utf-8");
+    writeFileSync(distFileJS, unicodeToText(content), "utf-8");
   });
 })();
