@@ -31,3 +31,12 @@ $ npm run gen
 ```
 
 4. 构建完成的产物为 `./dist.js`
+
+## 版权
+
+本脚本使用了以下库，它们的名字与开源许可如下：
+
+- [toastify-js](https://github.com/apvarun/toastify-js) - Pure JavaScript library for better notification messages - MIT
+- [axios](https://github.com/axios/axios) - Promise based HTTP client for the browser and node.js - MIT
+- [spectre](https://github.com/picturepan2/spectre) - A Lightweight, Responsive and Modern CSS Framework（经修改） - MIT
+

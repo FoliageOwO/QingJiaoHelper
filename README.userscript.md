@@ -19,11 +19,13 @@
 1. **该项目仅用于个人学习交流，禁止用于商业及非法用途，项目开发者对由脚本产生的任何性质的问题或纠纷概不负责！**
 2. **该项目没有违反脚本规则，举报前请仔细阅读源码，阅读授权！不要闲着没事乱举报脚本，维护脚本不容易！**
 
-## 插件地址
+## 支持与反馈
 
-**如果觉得还行的话请在 `GitHub` 上点个小星星吧 :)**
+**如果觉得此脚本帮到了你，欢迎在 `GitHub` 上为我点颗星星，或者请我喝杯奶茶，谢谢！**
 
-- [GitHub - WindLeaf233/QingJiaoHelper](https://github.com/WindLeaf233/QingJiaoHelper/)
+- [GitHub 仓库](https://github.com/WindLeaf233/QingJiaoHelper/)
+- [爱发电](https://afdian.net/a/foliageowo)
+- [捐赠列表](https://github.com/WindLeaf233/QingJiaoHelper/blob/master/FUNDERS.md)
 
 ## 使用方法
 
@@ -84,5 +86,13 @@
 - [HF0920](https://greasyfork.org/zh-CN/users/971958-hf0920) - 提供账号测试
 - [GooGuJiang](https://github.com/GooGuJiang) - 更换脚本外部库 CDN、UI 改进
 - [wyhh54321](https://greasyfork.org/zh-CN/users/973982-wyhh54321) - 提供官方题库
-- [飞小RAN](https://github.com/xiaofeiTM233) - 提供账号测试
+- [飞小 RAN](https://github.com/xiaofeiTM233) - 提供账号测试
 - Tzimorotas - 提供 2023 年五年级到高二期末考试题库
+
+## 版权
+
+本脚本使用了以下库，它们的名字与开源许可如下：
+
+- [toastify-js](https://github.com/apvarun/toastify-js) - Pure JavaScript library for better notification messages - MIT
+- [axios](https://github.com/axios/axios) - Promise based HTTP client for the browser and node.js - MIT
+- [spectre](https://github.com/picturepan2/spectre) - A Lightweight, Responsive and Modern CSS Framework（经修改） - MIT
