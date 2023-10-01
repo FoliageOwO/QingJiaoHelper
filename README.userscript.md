@@ -39,7 +39,7 @@
   - https://www.2-class.com/courses - 自动完成所有课程（不包括期末考试）
   - https://www.2-class.com/selfCourse - 自动完成所有**自学**课程（不包括考试）
   - https://www.2-class.com/admin/creditCenter - 自动获取所有可以获取的学分，包括 `心理减压`、`耕读学堂`、`校园安全` 等等
-  - https://www.2-class.com/courses/exams/finalExam - 期末考试
+  - https://www.2-class.com/courses/exams/finalExam - 期末考试（推荐和 `自动下一题并提交` 功能一起使用）
 - ② 在菜单中一键完成
   - 点击油猴脚本图标 → QingJiaoHelper → 菜单 → 一键完成
 - ③ 手动完成课程
