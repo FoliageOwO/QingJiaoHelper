@@ -187,7 +187,7 @@ function getAllFilePaths(directoryPath: string): string[] {
   writeFileSync(distFile, result, "utf-8");
 
   // 执行编译
-  exec(`tsc ${distFile} --noEmitHelpers`, (_, stdout) => {
+  exec(`tsc ${distFile} --noEmitHelpers --target ES2017`, (_, stdout) => {
     for (const line of stdout.split("\n")) {
       if (line.lastIndexOf("Cannot find name") === -1) {
         console.log(line);
