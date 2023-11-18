@@ -433,3 +433,7 @@ export async function taskFinalExamination(): Promise<void> {
     return;
   }
 }
+
+export async function taskMultiComplete(): Promise<void> {
+  // TODO
+}

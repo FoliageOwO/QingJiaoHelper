@@ -48,3 +48,15 @@ declare function showMenu(): void;
  * lib2class 库类型定义
  */
 declare const libs: any;
+
+/**
+ * 模拟事件
+ */
+declare type SimulatedEvent = Event & { simulated: boolean };
+
+/**
+ * React 输入框
+ */
+declare type ReactHTMLInputElement = HTMLInputElement & {
+  _valueTracker: { setValue: Function };
+};

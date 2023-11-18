@@ -232,3 +232,132 @@ export function fuzzyFind(
     realQuestion: theMostConfidentQuestion,
   };
 }
+/**
+ * 插入值到HTML输入元素
+ * @param input 要插入值的输入元素
+ * @param value 要插入到输入元素的值
+ */
+export async function insertValue(
+  input: ReactHTMLInputElement,
+  value: string
+): Promise<void> {
+  input.value = value;
+  const event: SimulatedEvent = new Event("input", {
+    bubbles: true,
+  }) as SimulatedEvent;
+  const tracker = input._valueTracker;
+  event.simulated = true;
+  if (tracker) {
+    tracker.setValue(value);
+  }
+  input.dispatchEvent(event);
+}
+
+/**
+ * 模拟登录
+ * @param account 账号
+ * @param password 密码
+ */
+export async function login(account: string, password: string): Promise<void> {
+  const loginButton = await waitForElementLoaded(
+    "#app > div > div.home-container > div > div > main > div.white-bg-panel > div.login_home > div > div.padding-panel.btn-panel > div > button"
+  );
+  loginButton.click();
+  const accountInput: ReactHTMLInputElement = (await waitForElementLoaded(
+    "#account"
+  )) as ReactHTMLInputElement;
+  const passwordInput: ReactHTMLInputElement = (await waitForElementLoaded(
+    "#password"
+  )) as ReactHTMLInputElement;
+  passwordInput.type = "text";
+  const submitButton = await waitForElementLoaded(
+    "body > div:nth-child(14) > div > div.ant-modal-wrap > div > div.ant-modal-content > div > form > div > div > div > button"
+  );
+
+  // 等待完全加载完毕再输入
+  await new Promise((resolve) => setTimeout(resolve, 500));
+
+  await insertValue(accountInput, account);
+  await insertValue(passwordInput, password);
+  submitButton.click();
+
+  // 不出意外都会弹出滑块验证，等待弹出后开始模拟验证
+  waitForElementLoaded("#login_nc")
+    .then(async () => {
+      showMessage("正在进行模拟滑块验证，请稍等...", "green");
+      await mockVerify();
+      waitForElementLoaded(
+        "div > div > div > div.ant-notification-notice-description"
+      ).then(() => {
+        showMessage(
+          "检测到滑块验证登入失败，请重新刷新网页并确保开发者工具处于开启状态！",
+          "red"
+        );
+      });
+    })
+    .catch(() => {
+      console.log("无滑块验证出现，已直接登入");
+    });
+}
+
+/**
+ * 模拟完成滑块验证
+ */
+export async function mockVerify(): Promise<void> {
+  const mockDistance = 394; // 滑块验证的长度
+  const mockInterval = 20; // 滑动间隔
+  const mockButtonId = "nc_1_n1z"; // 滑块验证的可交互按钮 ID
+
+  const verifyButton = document.getElementById(mockButtonId);
+  const clientRect = verifyButton.getBoundingClientRect();
+  const x = clientRect.x;
+  const y = clientRect.y;
+
+  // 创建鼠标点击事件
+  const mousedown = new MouseEvent("mousedown", {
+    bubbles: true,
+    cancelable: true,
+    // view: window,
+    clientX: x,
+    clientY: y,
+  });
+
+  // 触发鼠标点击事件
+  verifyButton.dispatchEvent(mousedown);
+
+  let dx = 0;
+  let dy = 0;
+  const timer = setInterval(function () {
+    const _x = x + dx;
+    const _y = y + dy;
+
+    // 创建鼠标移动事件
+    const mousemoveEvent = new MouseEvent("mousemove", {
+      bubbles: true,
+      cancelable: true,
+      // view: window,
+      clientX: _x,
+      clientY: _y,
+    });
+    // 触发鼠标移动事件
+    verifyButton.dispatchEvent(mousemoveEvent);
+
+    if (_x - x >= mockDistance) {
+      clearInterval(timer);
+
+      // 创建鼠标释放事件
+      const mouseupEvent = new MouseEvent("mouseup", {
+        bubbles: true,
+        cancelable: true,
+        // view: window,
+        clientX: _x,
+        clientY: _y,
+      });
+
+      // 触发鼠标释放事件
+      verifyButton.dispatchEvent(mouseupEvent);
+    } else {
+      dx += Math.ceil(Math.random() * 50);
+    }
+  }, mockInterval);
+}
