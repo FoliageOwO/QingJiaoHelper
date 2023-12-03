@@ -1,4 +1,3 @@
-import { isFullAutomaticEmulationEnabled } from "./";
 import {
   addMedal,
   addPCPlayPV,
@@ -16,6 +15,7 @@ import {
   reqtoken,
   selfCoursesGradeLevels,
 } from "./consts";
+import { features, isFullAutomaticEmulationEnabled } from "./features";
 import { customGradeLevels, customSelfGradeLevels } from "./menu";
 import {
   accurateFind,
@@ -434,6 +434,19 @@ export async function taskFinalExamination(): Promise<void> {
   }
 }
 
-export async function taskMultiComplete(): Promise<void> {
-  // TODO
+export async function taskMulti(
+  students: {
+    account: string;
+    password: string;
+  }[]
+): Promise<void> {
+  GM_setValue("qjh_multiStudents", students);
+  GM_setValue("qjh_multiTaskEnabled", true);
+  console.debug(
+    `开始全自动完成功能，已开启功能：${features
+      .filter((it) => it.enabled())
+      .map((it) => it.title)
+      .join("、")}`
+  );
+  location.pathname = "/";
 }

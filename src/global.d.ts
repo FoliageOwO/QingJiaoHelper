@@ -60,3 +60,11 @@ declare type SimulatedEvent = Event & { simulated: boolean };
 declare type ReactHTMLInputElement = HTMLInputElement & {
   _valueTracker: { setValue: Function };
 };
+
+declare type feature = {
+  key: string;
+  title: string;
+  matcher: RegExp | string[];
+  task: (callback: () => void) => Promise<void>;
+  enabled: () => boolean;
+}

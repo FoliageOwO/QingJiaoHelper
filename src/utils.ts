@@ -1,6 +1,8 @@
 import Toastify from "toastify-js";
 
 import { toastifyDuration, toastifyGravity, toastifyPosition } from "./consts";
+import * as XLSX from "xlsx";
+import { pendingTasks, runningTask } from ".";
 
 /// imports end
 
@@ -232,6 +234,7 @@ export function fuzzyFind(
     realQuestion: theMostConfidentQuestion,
   };
 }
+
 /**
  * 插入值到HTML输入元素
  * @param input 要插入值的输入元素
@@ -360,4 +363,52 @@ export async function mockVerify(): Promise<void> {
       dx += Math.ceil(Math.random() * 50);
     }
   }, mockInterval);
+}
+
+/**
+ * 创建账号密码模板表格
+ */
+export async function createAccountPasswordTemplate(): Promise<void> {
+  const workbook = XLSX.utils.book_new();
+  const worksheet = XLSX.utils.aoa_to_sheet([
+    ["账号", "密码", "成绩"],
+    ["示例账号1", "示例密码1", ""],
+    ["示例账号2", "示例密码2", ""],
+  ]);
+  XLSX.utils.book_append_sheet(workbook, worksheet);
+  const excelFileName = "账号密码模板.xlsx";
+  const buffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+  const data = new Blob([buffer], { type: "application/octet-stream" });
+  const downloadLink: HTMLAnchorElement = (await waitForElementLoaded(
+    "#multi-dlxlsx"
+  )) as HTMLAnchorElement;
+  downloadLink.href = window.URL.createObjectURL(data);
+  downloadLink.download = excelFileName;
+}
+
+export async function resolveAccountPasswordTemplate(
+  content: string | ArrayBuffer
+): Promise<{
+  isCorrectFile: boolean;
+  students: { account: string; password: string }[];
+  studentsSize: number;
+}> {
+  try {
+    const workbook = XLSX.read(content, {
+      type: "binary",
+    });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const data = XLSX.utils.sheet_to_json(worksheet);
+    const studentsSize = data.length;
+    const students = [];
+    for (let i = 0; i < studentsSize; i++) {
+      students.push({
+        account: data[i]["账号"],
+        password: data[i]["密码"],
+      });
+    }
+    return { isCorrectFile: true, students, studentsSize };
+  } catch (error) {
+    return { isCorrectFile: false, students: null, studentsSize: 0 };
+  }
 }

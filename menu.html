@@ -1,3 +1,10 @@
+<head>
+  <link
+    href="https://cdn.jsdelivr.net/gh/WindLeaf233/QingJiaoHelper/spectre.css"
+    rel="stylesheet"
+  />
+</head>
+
 <style>
   .qjh-menu {
     height: max-content;
@@ -16,6 +23,17 @@
   .form-inline {
     display: inline-block;
   }
+
+  #multi {
+    display: none;
+    position: relative;
+    z-index: 999;
+
+    top: 0;
+    left: 0;
+    height: fit-content;
+    width: fit-content;
+  }
 </style>
 
 <div class="card container qjh-menu">
@@ -33,121 +51,174 @@
   </div>
 
   <div class="card-body">
-    <div class="toast toast-warning">
-      ⚠注意：勾选的功能会在下一次刷新页面时<mark><b>自动激活</b></mark
-      >，未勾选的功能只能手动启用！点击<b>一键完成</b>按钮可以在这个菜单中直接完成，而不用手动跳转到对应页面。
+    <div id="functions">
+      <div class="toast toast-warning">
+        ⚠注意：勾选的功能会在下一次刷新页面时<mark><b>自动激活</b></mark
+        >，未勾选的功能只能手动启用！点击<b>一键完成</b>按钮可以在这个菜单中直接完成，而不用手动跳转到对应页面。
+      </div>
+
+      <div class="divider text-center" data-content="功能"></div>
+
+      <div>
+        <div class="form-group" id="qjh-menu-feat-courses">
+          <label class="form-switch">
+            <b>完成所选年级的课程</b>
+            <input
+              type="checkbox"
+              qjh-type="toggle"
+              qjh-key="qjh_isTaskCoursesEnabled"
+            />
+            <i class="form-icon"></i>
+            <button
+              class="btn btn-sm mx-2"
+              type="button"
+              qjh-feat-key="courses"
+            >
+              一键完成
+            </button>
+          </label>
+        </div>
+
+        <div class="form-group" id="qjh-menu-feat-self-courses">
+          <label class="form-switch">
+            <b>完成所选年级的自学课程</b>
+            <input
+              type="checkbox"
+              qjh-type="toggle"
+              qjh-key="qjh_isTaskSelfCourseEnabled"
+            />
+            <i class="form-icon"></i>
+            <button
+              class="btn btn-sm mx-2"
+              type="button"
+              qjh-feat-key="selfCourse"
+            >
+              一键完成
+            </button>
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label class="form-switch">
+            <b>获取每日学分</b>
+            <input
+              type="checkbox"
+              qjh-type="toggle"
+              qjh-key="qjh_isTaskGetCreditEnabled"
+            />
+            <i class="form-icon"></i>
+            <button
+              class="btn btn-sm mx-2"
+              type="button"
+              onclick="taskGetCredit"
+              qjh-feat-key="credit"
+            >
+              一键完成
+            </button>
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label class="form-switch">
+            <b>期末考试（推荐和<mark>自动下一题并提交</mark>功能一起使用）</b>
+            <input
+              type="checkbox"
+              qjh-type="toggle"
+              qjh-key="qjh_isTaskFinalExaminationEnabled"
+            />
+            <i class="form-icon"></i>
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label class="form-switch">
+            <b>课程自动填充答案</b>
+            <input
+              type="checkbox"
+              qjh-type="toggle"
+              qjh-key="qjh_isTaskSingleCourseEnabled"
+            />
+            <i class="form-icon"></i>
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label class="form-switch">
+            <b
+              >自动下一题并提交（可以和<mark>课程自动填充答案</mark>配合使用）</b
+            >
+            <input
+              type="checkbox"
+              qjh-type="toggle"
+              qjh-key="qjh_isFullAutomaticEmulationEnabled"
+            />
+            <i class="form-icon"></i>
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label class="form-switch">
+            <b>显示课程视频跳过按钮</b>
+            <input
+              type="checkbox"
+              qjh-type="toggle"
+              qjh-key="qjh_isTaskSkipEnabled"
+            />
+            <i class="form-icon"></i>
+          </label>
+        </div>
+      </div>
+
+      <button
+        class="btn btn-success my-2"
+        type="button"
+        onclick="document.getElementById('multi').style.display = 'block'; document.getElementById('functions').style.display = 'none';"
+      >
+        点这里开启全自动完成功能👉
+      </button>
     </div>
 
-    <div class="divider text-center" data-content="功能"></div>
-
-    <div>
-      <div class="form-group" id="qjh-menu-feat-courses">
-        <label class="form-switch">
-          <b>完成所选年级的课程</b>
-          <input
-            type="checkbox"
-            qjh-type="toggle"
-            qjh-key="qjh_isTaskCoursesEnabled"
-          />
-          <i class="form-icon"></i>
-          <button class="btn btn-sm mx-2" type="button" qjh-feat-key="courses">
-            一键完成👉
-          </button>
-        </label>
+    <div id="multi">
+      <div class="toast toast-warning">
+        ⚠注意：本功能处于实验阶段，可能存在一些不可预知的问题，如遇问题请及时反馈。请务必按确保<mark
+          ><b>表格格式正确</b></mark
+        >且全程<mark><b>开发者工具都为开启状态</b></mark
+        >，否则功能无法正常工作。
       </div>
 
-      <div class="form-group" id="qjh-menu-feat-self-courses">
-        <label class="form-switch">
-          <b>完成所选年级的自学课程</b>
-          <input
-            type="checkbox"
-            qjh-type="toggle"
-            qjh-key="qjh_isTaskSelfCourseEnabled"
-          />
-          <i class="form-icon"></i>
-          <button
-            class="btn btn-sm mx-2"
-            type="button"
-            qjh-feat-key="selfCourse"
-          >
-            一键完成👉
-          </button>
-        </label>
+      <div class="divider text-center" data-content="全自动完成"></div>
+
+      <div>
+        <a class="my-1">第一步：请确保在单个功能页面选中需要自动完成的功能</a
+        ><br />
+        <a class="my-2">第二步：</a
+        ><a id="multi-dlxlsx"
+          ><button class="btn btn-sm">下载账号密码模板表格</button></a
+        ><br />
+        <a class="my-2">第三步：将账号添加到表格后点击下方按钮上传表格</a
+        ><input type="file" accept=".xlsx" id="multi-ulxlsx" /><br />
+        <a class="my-2" id="multi-ulinfo"></a><br />
+        <button id="multi-ulstart" class="btn btn-primary disabled my-2">
+          开始
+        </button>
       </div>
 
-      <div class="form-group">
-        <label class="form-switch">
-          <b>获取每日学分</b>
-          <input
-            type="checkbox"
-            qjh-type="toggle"
-            qjh-key="qjh_isTaskGetCreditEnabled"
-          />
-          <i class="form-icon"></i>
-          <button
-            class="btn btn-sm mx-2"
-            type="button"
-            onclick="taskGetCredit"
-            qjh-feat-key="credit"
-          >
-            一键完成👉
-          </button>
-        </label>
-      </div>
+      <div id="multi-start"></div>
 
-      <div class="form-group">
-        <label class="form-switch">
-          <b>期末考试（推荐和<mark>自动下一题并提交</mark>功能一起使用）</b>
-          <input
-            type="checkbox"
-            qjh-type="toggle"
-            qjh-key="qjh_isTaskFinalExaminationEnabled"
-          />
-          <i class="form-icon"></i>
-        </label>
-      </div>
-
-      <div class="form-group">
-        <label class="form-switch">
-          <b>课程自动填充答案</b>
-          <input
-            type="checkbox"
-            qjh-type="toggle"
-            qjh-key="qjh_isTaskSingleCourseEnabled"
-          />
-          <i class="form-icon"></i>
-        </label>
-      </div>
-
-      <div class="form-group">
-        <label class="form-switch">
-          <b>自动下一题并提交（可以和<mark>课程自动填充答案</mark>配合使用）</b>
-          <input
-            type="checkbox"
-            qjh-type="toggle"
-            qjh-key="qjh_isFullAutomaticEmulationEnabled"
-          />
-          <i class="form-icon"></i>
-        </label>
-      </div>
-
-      <div class="form-group">
-        <label class="form-switch">
-          <b>显示课程视频跳过按钮</b>
-          <input
-            type="checkbox"
-            qjh-type="toggle"
-            qjh-key="qjh_isTaskSkipEnabled"
-          />
-          <i class="form-icon"></i>
-        </label>
-      </div>
-
-      <div class="divider"></div>
+      <button
+        class="btn btn-success my-2"
+        type="button"
+        onclick="document.getElementById('multi').style.display = 'none'; document.getElementById('functions').style.display = 'block';"
+      >
+        点这里返回单个功能页面👉
+      </button>
     </div>
+
+    <div class="divider"></div>
   </div>
+
   <div class="card-footer text-gray">
-    本脚本由 WindLeaf233 以
+    本脚本由 WindLeaf233（FoliageOwO）以
     <b><a href="https://www.gnu.org/licenses/gpl-3.0.en.html">GPL-3.0</a></b>
     开源许可在 GitHub 开源，脚本地址：<a
       href="https://github.com/WindLeaf233/QingJiaoHelper"

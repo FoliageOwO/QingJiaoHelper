@@ -4,9 +4,13 @@ import {
   scriptVersion,
   selfCoursesGradeLevels,
 } from "./consts";
+import { taskMulti } from "./tasks";
 import {
+  createAccountPasswordTemplate,
+  featureTask,
   getGMValue,
   nodeListToArray,
+  resolveAccountPasswordTemplate,
   showMessage,
   waitForElementLoaded,
 } from "./utils";
@@ -124,11 +128,45 @@ export async function prepareMenu() {
     const feature = features.find((feature) => feature.key === key);
     featButton.onclick = () => {
       if (feature.enabled()) {
-        showMessage(`手动激活功能：${feature.title}`, "green");
-        feature.task();
+        featureTask(feature);
       } else {
         showMessage(`功能 ${feature.title} 未被启用！`, "red");
       }
     };
   }
+
+  // 添加自动完成的表格下载与上传
+  const multiDownloadButton = await waitForElementLoaded("#multi-dlxlsx");
+  multiDownloadButton.onclick = () => {
+    createAccountPasswordTemplate();
+  };
+  const multiUpload: HTMLInputElement = (await waitForElementLoaded(
+    "#multi-ulxlsx"
+  )) as HTMLInputElement;
+  multiUpload.onchange = async () => {
+    const file = multiUpload.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const content = event.target.result;
+        const mutiUploadInfo = await waitForElementLoaded("#multi-ulinfo");
+        const { isCorrectFile, students, studentsSize } =
+          await resolveAccountPasswordTemplate(content);
+        if (isCorrectFile) {
+          mutiUploadInfo.innerText = `成功从 ${file.name} 中读取到 ${studentsSize} 个学生`;
+          const startButton = await waitForElementLoaded("#multi-ulstart");
+          startButton.className = startButton.className
+            .split(" ")
+            .filter((it) => it !== "disabled")
+            .join(" ");
+          startButton.onclick = async () => {
+            await taskMulti(students);
+          };
+        } else {
+          mutiUploadInfo.innerText = "读取失败！请确保格式正确并重新上传";
+        }
+      };
+      reader.readAsBinaryString(file);
+    }
+  };
 }

@@ -1,105 +1,91 @@
 import { scriptName, scriptVersion } from "./consts";
+import { features } from "./features";
 import { prepareMenu } from "./menu";
-import {
-  taskCourses,
-  taskFinalExamination,
-  taskGetCredit,
-  taskSingleCourse,
-  taskSkip,
-} from "./tasks";
-import { featureNotAvailable, getGMValue, showMessage } from "./utils";
+import { getGMValue, login, showMessage, waitForElementLoaded } from "./utils";
 
 /// imports end
 
 ("use strict");
 
-/* ------------ 动态值 ------------ */
-export const isTaskCoursesEnabled = () =>
-  getGMValue("qjh_isTaskCoursesEnabled", false);
-export const isTaskSelfCourseEnabled = () =>
-  getGMValue("qjh_isTaskSelfCourseEnabled", false);
-export const isTaskGetCreditEnabled = () =>
-  getGMValue("qjh_isTaskGetCreditEnabled", false);
-export const isTaskSingleCourseEnabled = () =>
-  getGMValue("qjh_isTaskSingleCourseEnabled", true);
-export const isTaskSkipEnabled = () =>
-  getGMValue("qjh_isTaskSkipEnabled", true);
-export const isTaskFinalExaminationEnabled = () =>
-  getGMValue("qjh_isTaskFinalExaminationEnabled", false);
-export const isFullAutomaticEmulationEnabled = () =>
-  getGMValue("qjh_isFullAutomaticEmulationEnabled", false);
+export let isMultiTaskEnabled = () => getGMValue("qjh_multiTaskEnabled", false);
+export let multiStudents: {
+  account: string;
+  password: string;
+}[] = getGMValue("qjh_multiStudents", []);
+export let multiStudentsDone = Array.from(multiStudents);
+export let currentStudent: {
+  account: string;
+  password: string;
+} | null = getGMValue("qjh_currentStudent", null);
+export let runningTask: string | null = getGMValue("qjh_runningTask", null);
+export let pendingTasks: string[] = getGMValue("qjh_pendingTask", []);
 
-/* ------------ 自动完成的一些值 ------------ */
-export let autoComplete = () => featureNotAvailable("自动完成");
-export let autoCompleteCreditsDone = () =>
-  getGMValue("qjh_autoCompleteCreditsDone", false);
+/**
+ * 激活功能，如果地址不匹配会自动跳转
+ * @param feature 功能
+ * @param ignoreIsEnabled 是否忽略 `isEnabled`
+ */
+export async function featureTask(
+  feature: feature,
+  ignoreIsEnabled: boolean = false
+): Promise<void> {
+  const matcher = feature.matcher;
+  const start = async () => {
+    console.log("1 start", feature.key, feature.enabled(), ignoreIsEnabled);
+    if (feature.enabled() || ignoreIsEnabled) {
+      if (runningTask === null) {
+        showMessage(`激活功能：${feature.title}`, "green");
+        runningTask = feature.key;
+        GM_setValue("qjh_runningTask", feature.key);
+        console.log("2 runningtask", runningTask, pendingTasks);
+        await feature.task(() => {
+          console.log("says done");
+          runningTask = null;
+          GM_setValue("qjh_runningTask", null);
+          if (pendingTasks.length > 0) {
+            const nextTask = pendingTasks.shift();
+            if (nextTask) {
+              featureTask(
+                features.find((it) => it.key === nextTask) as feature,
+                ignoreIsEnabled
+              );
+            }
+          }
+          console.log("3 done", feature.key, pendingTasks);
+        });
+      } else {
+        console.log("4 runningskip", runningTask, pendingTasks);
+        pendingTasks.push(feature.key);
+      }
+    }
+  };
 
-/* ------------ 功能 ------------ */
-type feature = {
-  key: string;
-  title: string;
-  matcher: RegExp | string[];
-  task: Function;
-  enabled: () => boolean;
-};
+  if (feature.enabled() || ignoreIsEnabled) {
+    if (matcher instanceof RegExp) {
+      if (location.pathname.match(matcher)) {
+        await start();
+      } else {
+        showMessage("无法手动激活该功能，需要自行跳转至对应页面！", "red");
+      }
+    } else if (matcher.indexOf(location.pathname) !== -1) {
+      await start();
+    } else {
+      location.pathname = matcher[0];
 
-export const features: feature[] = [
-  {
-    key: "courses",
-    title: "自动完成所有课程（不包括考试）",
-    matcher: ["/courses", "/drugControlClassroom/courses"],
-    task: () => taskCourses(false),
-    enabled: isTaskCoursesEnabled,
-  },
-  {
-    key: "selfCourse",
-    title: "自动完成所有自学课程（不包括考试）",
-    matcher: ["/selfCourse", "/drugControlClassroom/selfCourse"],
-    task: () => taskCourses(true),
-    enabled: isTaskSelfCourseEnabled,
-  },
-  {
-    key: "credit",
-    title: "自动获取每日学分（会花费一段时间，请耐心等待）",
-    matcher: ["/admin/creditCenter"],
-    task: taskGetCredit,
-    enabled: isTaskGetCreditEnabled,
-  },
-  {
-    key: "singleCourse",
-    title: "单个课程自动完成",
-    matcher: /\/courses\/exams\/(\d+)/,
-    task: taskSingleCourse,
-    enabled: isTaskSingleCourseEnabled,
-  },
-  // {
-  //   title: "知识竞赛",
-  //   matcher: ["/competition"],
-  //   task: taskCompetition,
-  //   enabled: true,
-  // },
-  {
-    key: "finalExamination",
-    title: "期末考试",
-    matcher: ["/courses/exams/finalExam"],
-    task: taskFinalExamination,
-    enabled: isTaskFinalExaminationEnabled,
-  },
-  {
-    key: "skip",
-    title: "显示课程视频跳过按钮",
-    matcher: /\/courses\/(\d+)/,
-    task: taskSkip,
-    enabled: isTaskSkipEnabled,
-  },
-];
+      if (!feature.enabled()) {
+        await waitForElementLoaded("body");
+        await start();
+      }
+    }
+  }
+}
 
 /**
  * 触发功能
  */
 function triggerFeatures(): void {
   // 匹配当前的地址，自动执行对应的功能
-  if (location.pathname === "/") {
+  if (location.pathname === "/" && !isMultiTaskEnabled()) {
     showMessage(`${scriptName}\n版本：${scriptVersion}`, "green");
   }
   features.forEach((feature: feature) => {
@@ -109,14 +95,13 @@ function triggerFeatures(): void {
         ? location.pathname.match(matcher)
         : matcher.indexOf(location.pathname) !== -1;
     if (isMatched && feature.enabled()) {
-      showMessage(`激活功能：${feature.title}`, "green");
-      feature.task();
+      featureTask(feature, false);
     }
   });
 }
 
 // 脚本主函数，注册一些东西，并执行功能
-(function () {
+(async function () {
   // 加载 `__DATA__`
   for (let script of document.getElementsByTagName("script")) {
     if (script.innerText.indexOf("window.__DATA__") !== -1) {
@@ -146,11 +131,41 @@ function triggerFeatures(): void {
   // 默认触发一次
   triggerFeatures();
 
-  // 如果 `自动完成` 功能启用，每次刷新页面就会执行以下函数，即依次开启所有功能
-  // TODO
-  // autoComplete = () =>
-  //   features.forEach((feature: feature) => {
-  //     showMessage(`自动激活功能：${feature.title}`, "green");
-  //     feature.task();
-  //   });
+  console.log("5 run script", pendingTasks, runningTask, isMultiTaskEnabled());
+
+  // 自动完成任务
+  if (
+    isMultiTaskEnabled() &&
+    (runningTask !== null || currentStudent === null)
+  ) {
+    if (pendingTasks.length === 0) {
+      console.log("6 pending0 multistudents", multiStudents);
+      if (multiStudents.length > 0) {
+        const student = multiStudents.shift();
+        console.log("7 shift", student, multiStudents);
+        GM_setValue("qjh_multiStudents", multiStudents);
+        console.log(`正在完成学生：${student.account}...`);
+
+        await login(student.account, student.password);
+        await waitForElementLoaded(
+          "#app > div > div.home-container > div > div > main > div.white-bg-panel > div.login_home > div > div.user-center-panel > div.user-info"
+        );
+        setTimeout(() => {}, 1000);
+
+        currentStudent = student;
+        GM_setValue("qjh_currentStudent", student);
+        features.forEach((feature: feature) => {
+          console.log("8 trytotask", feature.key, feature.enabled());
+          featureTask(feature, false);
+        });
+      } else {
+        const size = multiStudentsDone.length;
+        console.log(`全自动完成功能已完成 ${size} 名学生！`);
+        // 清空已完成的
+        multiStudents = [];
+        GM_setValue("qjh_multiStudents", []);
+        GM_setValue("qjh_multiTaskEnabled", false);
+      }
+    }
+  }
 })();
