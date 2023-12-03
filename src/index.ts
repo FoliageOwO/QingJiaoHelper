@@ -1,6 +1,7 @@
 import { scriptName, scriptVersion } from "./consts";
 import { prepareMenu } from "./menu";
 import {
+  taskCompetition,
   taskCourses,
   taskFinalExamination,
   taskGetCredit,
@@ -28,6 +29,8 @@ export const isTaskFinalExaminationEnabled = () =>
   getGMValue("qjh_isTaskFinalExaminationEnabled", false);
 export const isFullAutomaticEmulationEnabled = () =>
   getGMValue("qjh_isFullAutomaticEmulationEnabled", false);
+export const istaskCompetitionEnabled = () =>
+  getGMValue("qjh_istaskCompetitionEnabled", true);
 
 /* ------------ 自动完成的一些值 ------------ */
 export let autoComplete = () => featureNotAvailable("自动完成");
@@ -72,12 +75,13 @@ export const features: feature[] = [
     task: taskSingleCourse,
     enabled: isTaskSingleCourseEnabled,
   },
-  // {
-  //   title: "知识竞赛",
-  //   matcher: ["/competition"],
-  //   task: taskCompetition,
-  //   enabled: true,
-  // },
+  {
+    key: "competition",
+    title: "知识竞赛",
+    matcher: ["/competition"],
+    task: taskCompetition,
+    enabled: istaskCompetitionEnabled,
+  },
   {
     key: "finalExamination",
     title: "期末考试",
