@@ -6,6 +6,10 @@
 2. 在 [Greasy Fork - QingJiaoHelper](https://greasyfork.org/zh-CN/scripts/452984-qingjiaohelper) 中安装脚本
 3. 详细用法见脚本主页
 
+## 更新
+
+由于学业无法只能随缘更新，若有能力请提 `Pull Request`。
+
 ## 构建
 
 > [!NOTE]
