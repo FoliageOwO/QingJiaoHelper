@@ -1,9 +1,9 @@
 {
   "name": "QingJiaoHelper",
   "namespace": "http://tampermonkey.net/",
-  "version": "0.3.1",
-  "description": "青骄第二课堂小助手: 长期更新 | 2022 知识竞赛 | 跳过视频 | 自动完成所有课程 | 每日领取学分 | 课程自动填充答案",
-  "author": "WindLeaf233",
+  "version": "0.3.2",
+  "description": "青骄第二课堂小助手: 长期更新 | 2024 | 跳过视频 | 自动完成所有课程 | 每日领取学分 | 课程自动填充答案",
+  "author": "FoliageOwO",
   "match": ["*://www.2-class.com/*", "*://2-class.com/*"],
   "grant": [
     "GM_addStyle",
@@ -13,14 +13,14 @@
     "GM_setValue"
   ],
   "license": "GPL-3.0",
-  "supportURL": "https://github.com/WindLeaf233/QingJiaoHelper",
+  "supportURL": "https://github.com/FoliageOwO/QingJiaoHelper",
   "require": [
     "https://cdn.bootcdn.net/ajax/libs/toastify-js/1.12.0/toastify.min.js",
-    "https://greasyfork.org/scripts/453791-lib2class/code/lib2class.js?version=1258326",
+    "https://cdn.jsdelivr.net/gh/FoliageOwO/lib2class/lib2class.js",
     "https://cdn.bootcdn.net/ajax/libs/axios/1.3.6/axios.min.js"
   ],
   "resource": {
     "toastifycss": "https://cdn.bootcdn.net/ajax/libs/toastify-js/1.12.0/toastify.min.css",
-    "spectrecss": "https://cdn.jsdelivr.net/gh/WindLeaf233/QingJiaoHelper/spectre.css"
+    "spectrecss": "https://cdn.jsdelivr.net/gh/FoliageOwO/QingJiaoHelper/spectre.css"
   }
 }

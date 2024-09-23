@@ -42,20 +42,22 @@ export async function startCourse(courseId: string): Promise<boolean> {
     showMessage(`[${courseId}] 无法获取当前课程的答案！`, "red");
     return false;
   } else {
-    console.debug(`正在提交课程 [${courseId}] 答案...`);
-    const data = {
-      courseId,
-      examCommitReqDataList: answers.map((answer, index) => {
-        return {
-          examId: index + 1, // examId = index + 1
-          answer: Number(answer) || answer, // 如果是单选，则必须要为数字
-        };
-      }),
-      reqtoken: reqtoken(),
-    };
-    const response = await commitExam(data);
-    console.debug(`提交课程 [${data.courseId}] 答案`, response);
-    return !isNone(response);
+    // console.debug(`正在提交课程 [${courseId}] 答案...`);
+    // const data = {
+    //   courseId,
+    //   examCommitReqDataList: answers.map((answer, index) => {
+    //     return {
+    //       examId: index + 1, // examId = index + 1
+    //       answer: Number(answer) || answer, // 如果是单选，则必须要为数字
+    //     };
+    //   }),
+    //   reqtoken: reqtoken(),
+    // };
+    // const response = await commitExam(data);
+    // console.debug(`提交课程 [${data.courseId}] 答案`, response);
+    // return !isNone(response);
+
+    location.href = `https://www.2-class.com/courses/exams/${courseId}`;
   }
 }
 
@@ -133,7 +135,7 @@ export async function taskCourses(isSelfCourses: boolean): Promise<void> {
 }
 
 /**
- * 开始手动单个课程自动完成
+ * 开始单个课程自动完成
  */
 export async function taskSingleCourse(): Promise<void> {
   if (!isLogined()) {
@@ -157,6 +159,28 @@ export async function taskSingleCourse(): Promise<void> {
     `答题 [${courseId}]`,
     answers.length
   );
+  const passText = await waitForElementLoaded(
+    "#app > div > div.home-container > div > div > div > div.exam-box > div > div > p.exam-pass-title"
+  );
+  if (passText) {
+    const courses = [];
+    const courseLevels = customGradeLevels();
+    for (const courseLevel of courseLevels) {
+      const result = await getCoursesByGradeLevel(courseLevel);
+      for (const course of result) {
+        courses.push(course);
+      }
+    }
+    const courseIds = courses
+      .filter((it) => !it.isFinish && it.title !== "期末考试")
+      .map((it) => it.courseId);
+    if (courseIds.length === 0) {
+      showMessage("所有的课程已全部自动完成！", "green");
+      location.href = "https://www.2-class.com/courses/";
+    } else {
+      location.href = `https://www.2-class.com/courses/exams/${courseIds[0]}`;
+    }
+  }
 }
 
 /**
@@ -266,10 +290,16 @@ export async function emulateExamination(
   };
 
   const startButton = await waitForElementLoaded(startButtonSelector);
-  startButton.onclick = () => {
-    showMessage(`开始 ${examinationName}！`, "blue");
+  if (isFullAutomaticEmulationEnabled()) {
+    showMessage(`自动开始 ${examinationName}！`, "blue");
+    startButton.click();
     next(answers, null);
-  };
+  } else {
+    startButton.onclick = () => {
+      showMessage(`开始 ${examinationName}！`, "blue");
+      next(answers, null);
+    };
+  }
 }
 
 /**

@@ -63,7 +63,10 @@ export async function requestAPI(
     url = url.replaceAll("${" + key + "}", params[key]);
   }
   if (method === "GET") {
-    return await axios({ method: "GET", url })
+    return await axios({
+      method: "GET",
+      url,
+    })
       .then((response: AxiosResponse) => {
         const rdata = response.data;
         console.debug(`[${method}] ${url}`, data, rdata);
@@ -94,6 +97,7 @@ export async function requestAPI(
     return await axios({
       method: "POST",
       url,
+      withCredentials: true,
       headers: {
         "Content-Type": "application/json;charset=UTF-8",
       },
