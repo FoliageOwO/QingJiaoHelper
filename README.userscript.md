@@ -6,13 +6,11 @@
 ![](https://img.shields.io/greasyfork/l/452984?label=%E8%AE%B8%E5%8F%AF%E8%AF%81)
 ![](https://img.shields.io/greasyfork/rating-count/452984?label=%E8%AF%84%E5%88%86)
 
-青骄第二课堂小助手：长期更新 | 2022 知识竞赛 | 自动完成所有课程 | 每日领取学分 | 课程自动填充答案
-
-**_（2023 版正在更新中）由于现在高三，很少有时间更新，望见谅，也希望有能力有时间的大佬一起维护，源代码库在下面的 `插件地址` 中（技术栈：`HTML5`、`TypeScript`）_**
+青骄第二课堂小助手：2024 | 自动完成所有课程 | 每日领取学分 | 课程自动填充答案
 
 **！！有问题请先看下面的常见问题解答！！**
 
-**欢迎提供期末考试或知识竞赛题库**，联系邮箱 `mc.windleaf@foxmail.com` 或以 [GitHub](https://github.com/WindLeaf233) 注明的联系方式联系我
+**欢迎提供期末考试或知识竞赛题库**，联系邮箱 `mc.windleaf@foxmail.com` 或以 [GitHub](https://github.com/FoliageOwO) 注明的联系方式联系我
 
 ## 免责声明
 
@@ -23,9 +21,8 @@
 
 **如果觉得此脚本帮到了你，欢迎在 `GitHub` 上为我点颗星星，或者请我喝杯奶茶，谢谢！**
 
-- [GitHub 仓库](https://github.com/WindLeaf233/QingJiaoHelper/)
-- [爱发电](https://afdian.net/a/foliageowo)
-- [捐赠列表](https://github.com/WindLeaf233/QingJiaoHelper/blob/master/FUNDERS.md)
+- [GitHub 仓库](https://github.com/FoliageOwO/QingJiaoHelper/)
+- [捐赠列表](https://github.com/FoliageOwO/QingJiaoHelper/blob/master/FUNDERS.md)
 
 ## 使用方法
 
@@ -37,8 +34,8 @@
 **注意：大部分功能默认都是关闭状态，你可以自定义开关对应功能（点击油猴脚本图标 → QingJiaoHelper → 菜单 → 功能名前的开关），关闭后将会无法激活**
 
 - ① 跳转到页面来激活对应功能
-  - https://www.2-class.com/courses - 自动完成所有课程（不包括期末考试）
-  - https://www.2-class.com/selfCourse - 自动完成所有**自学**课程（不包括考试）
+  - https://www.2-class.com/courses - 自动完成所有选择年级的课程（不包括期末考试）（推荐和 `课程自动填充答案` 和 `自动下一题并提交` 配合使用）
+  - ~~https://www.2-class.com/selfCourse - 自动完成所有**自学**课程（不包括考试）~~（暂不支持全自动完成）
   - https://www.2-class.com/admin/creditCenter - 自动获取所有可以获取的学分，包括 `心理减压`、`耕读学堂`、`校园安全` 等等
   - https://www.2-class.com/courses/exams/finalExam - 期末考试（推荐和 `自动下一题并提交` 功能一起使用）
 - ② 在菜单中一键完成
@@ -60,10 +57,6 @@
 
 本人精力有限，这个问题就先放在这里，还望大佬提供更好的解决方案
 
-- **支持知识竞赛和期末考试吗**
-
-2023 知识竞赛还没有开始，**2023 期末考试目前只支持（五年级、六年级、七年级、八年级、九年级、高一、高二）**（欢迎提供题库）
-
 - **脚本出问题不工作了怎么办**
 
 1. 先检查是不是最新版本，如果不是请先更新
@@ -72,15 +65,6 @@
 4. 除了 `Failed to load resource` 开头的错误，查看有没有别的红色的消息（一般都是中文错误）
 5. 截图控制台错误，在 `GreasyFork` 反馈，或者 `GitHub Issues` 反馈，并带上截图
 
-## TODOs
-
-- [x] 添加 UI 界面，控制功能开关
-- [ ] ~~支持批量导入账号，实现全自动批量完成课程~~
-- [x] 设置完成自定义范围的课程和手动完成课程
-- [ ] 完成 2023 知识竞赛的脚本（v0.3.0）
-- [x] 完成 2023 期末考试的脚本（v0.3.0）
-- [x] 使用异步重构代码，优化日志输出
-
 ## 特别感谢
 
 - [HF0920](https://greasyfork.org/zh-CN/users/971958-hf0920) - 提供账号测试
@@ -88,10 +72,11 @@
 - [wyhh54321](https://greasyfork.org/zh-CN/users/973982-wyhh54321) - 提供官方题库
 - [飞小 RAN](https://github.com/xiaofeiTM233) - 提供账号测试
 - Tzimorotas - 提供 2023 年五年级到高二期末考试题库
+- Tzimorotas - 提供 2024 年小学、中学题库
 
 ## 版权
 
-本脚本使用了以下库，它们的名字与开源许可如下：
+本脚本使用了以下开源库，它们的名字与开源许可如下：
 
 - [toastify-js](https://github.com/apvarun/toastify-js) - Pure JavaScript library for better notification messages - MIT
 - [axios](https://github.com/axios/axios) - Promise based HTTP client for the browser and node.js - MIT
