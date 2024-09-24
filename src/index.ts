@@ -25,8 +25,8 @@ export const isTaskFinalExaminationEnabled = () =>
   getGMValue("qjh_isTaskFinalExaminationEnabled", false);
 export const isFullAutomaticEmulationEnabled = () =>
   getGMValue("qjh_isFullAutomaticEmulationEnabled", false);
-export const istaskCompetitionEnabled = () =>
-  getGMValue("qjh_istaskCompetitionEnabled", true);
+export const isTaskCompetitionEnabled = () =>
+  getGMValue("qjh_isTaskCompetitionEnabled", true);
 
 /* ------------ 自动完成的一些值 ------------ */
 export let autoComplete = () => featureNotAvailable("自动完成");
@@ -76,7 +76,7 @@ export const features: feature[] = [
     title: "知识竞赛",
     matcher: ["/competition"],
     task: taskCompetition,
-    enabled: istaskCompetitionEnabled,
+    enabled: isTaskCompetitionEnabled,
   },
   {
     key: "finalExamination",
