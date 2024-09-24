@@ -21,10 +21,6 @@ export const isTaskSelfCourseEnabled = () =>
   getGMValue("qjh_isTaskSelfCourseEnabled", false);
 export const isTaskGetCreditEnabled = () =>
   getGMValue("qjh_isTaskGetCreditEnabled", false);
-export const isTaskSingleCourseEnabled = () =>
-  getGMValue("qjh_isTaskSingleCourseEnabled", true);
-export const isTaskSkipEnabled = () =>
-  getGMValue("qjh_isTaskSkipEnabled", true);
 export const isTaskFinalExaminationEnabled = () =>
   getGMValue("qjh_isTaskFinalExaminationEnabled", false);
 export const isFullAutomaticEmulationEnabled = () =>
@@ -70,10 +66,10 @@ export const features: feature[] = [
   },
   {
     key: "singleCourse",
-    title: "单个课程自动完成",
+    title: "单个课程自动填充答案",
     matcher: /\/courses\/exams\/(\d+)/,
     task: taskSingleCourse,
-    enabled: isTaskSingleCourseEnabled,
+    enabled: () => true,
   },
   {
     key: "competition",
@@ -94,7 +90,7 @@ export const features: feature[] = [
     title: "显示课程视频跳过按钮",
     matcher: /\/courses\/(\d+)/,
     task: taskSkip,
-    enabled: isTaskSkipEnabled,
+    enabled: () => true,
   },
 ];
 
