@@ -253,7 +253,10 @@ export async function emulateExamination(
         // 用户点击 `下一步` 按钮会继续触发本函数，传入下一题的答案和下一题的按钮
         // * 延时根据 `interval` 参数决定
         nextButton.onclick = () => {
-          setTimeout(() => next(nextAnswers, nextButton), interval);
+          setTimeout(
+            () => next(nextAnswers, nextButton),
+            isFullAutomaticEmulationEnabled() ? interval : 0
+          );
           return;
         };
 
@@ -304,7 +307,7 @@ export async function emulateExamination(
     startButton.onclick = async () => {
       showMessage(`开始 ${examinationName}！`, "blue");
       await afterStart();
-      setTimeout(() => next(answers, null), interval);
+      next(answers, null);
     };
   }
 }
