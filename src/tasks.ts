@@ -295,11 +295,11 @@ export async function emulateExamination(
   if (isFullAutomaticEmulationEnabled()) {
     showMessage(`自动开始 ${examinationName}！`, "blue");
     startButton.click();
-    next(answers, null);
+    setTimeout(() => next(answers, null), interval);
   } else {
     startButton.onclick = () => {
       showMessage(`开始 ${examinationName}！`, "blue");
-      next(answers, null);
+      setTimeout(() => next(answers, null), interval);
     };
   }
 }
