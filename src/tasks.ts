@@ -191,7 +191,8 @@ export async function taskSingleCourse(): Promise<void> {
  * @param secondaryNextButtonSelector 次下一题按钮选择器
  * @param answerHandler 答案处理器，传入答案和问题并由该处理器处理完毕后返回答案和匹配到的问题至本函数
  * @param examinationName 答题名称
- * @param size
+ * @param size 最大题目数
+ * @param interval 与下一题间隔的时间（单位为毫秒）
  */
 export async function emulateExamination(
   answers: string[],
@@ -206,7 +207,8 @@ export async function emulateExamination(
     matchedQuestion: string | null;
   },
   examinationName: string,
-  size = 100
+  size = 100,
+  interval = 50
 ): Promise<void> {
   // TODO 这个函数有些过于复杂了，之后有时间看看能不能简化并剥离出来
   let isExaminationStarted = false;
@@ -246,9 +248,9 @@ export async function emulateExamination(
       // 根据题量大小 `size` 开始答题
       if (!isNone(size) && count < size) {
         // 用户点击 `下一步` 按钮会继续触发本函数，传入下一题的答案和下一题的按钮
-        // * 延时为 200ms
+        // * 延时根据 `interval` 参数决定
         nextButton.onclick = () => {
-          setTimeout(() => next(nextAnswers, nextButton), 200);
+          setTimeout(() => next(nextAnswers, nextButton), interval);
           return;
         };
 
@@ -514,7 +516,8 @@ export async function taskCompetition(): Promise<void> {
         };
       },
       "知识竞赛",
-      20 /* 最大题目数，竞赛只有 20 道题目，如果未定义并打开了 `自动下一题并提交` 会导致循环提示最后一题 80 次 */
+      20, // 最大题目数，竞赛只有 20 道题目，如果未定义并打开了 `自动下一题并提交` 会导致循环提示最后一题 80 次
+      3000 // 与下一题的间隔时间，单位毫秒，默认 3 秒
     );
   } else {
     showMessage(`你的年级 [${gradeLevel}] 暂未支持知识竞赛！`, "red");
