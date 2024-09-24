@@ -26,6 +26,7 @@ import {
   toDisplayAnswer,
   waitForElementLoaded,
   toAnswer,
+  nodeListToArray,
 } from "./utils";
 
 /// imports end
@@ -193,6 +194,7 @@ export async function taskSingleCourse(): Promise<void> {
  * @param examinationName 答题名称
  * @param size 最大题目数
  * @param interval 与下一题间隔的时间（单位为毫秒）
+ * @param afterStart 点击开始按钮后要执行的操作（异步，适配最新知识竞赛）
  */
 export async function emulateExamination(
   answers: string[],
@@ -208,7 +210,8 @@ export async function emulateExamination(
   },
   examinationName: string,
   size = 100,
-  interval = 50
+  interval = 50,
+  afterStart: () => Promise<void> = async () => {}
 ): Promise<void> {
   // TODO 这个函数有些过于复杂了，之后有时间看看能不能简化并剥离出来
   let isExaminationStarted = false;
@@ -295,10 +298,12 @@ export async function emulateExamination(
   if (isFullAutomaticEmulationEnabled()) {
     showMessage(`自动开始 ${examinationName}！`, "blue");
     startButton.click();
+    await afterStart();
     setTimeout(() => next(answers, null), interval);
   } else {
-    startButton.onclick = () => {
+    startButton.onclick = async () => {
       showMessage(`开始 ${examinationName}！`, "blue");
+      await afterStart();
       setTimeout(() => next(answers, null), interval);
     };
   }
@@ -497,17 +502,21 @@ export async function taskCompetition(): Promise<void> {
   } else {
     gradeGroup = "中学组";
   }
+
   if (supportedCompetition.hasOwnProperty(gradeGroup)) {
     showMessage(`已自动选择 [${gradeGroup}] 知识竞赛题库`, "cornflowerblue");
+
     const paperName = supportedCompetition[gradeGroup];
     let papers = libs[paperName];
     papers = papers.map((it) => {
       return { question: it.question, answer: toAnswer(it.answer) };
     });
+
     if (!Array.isArray(papers)) {
       showMessage(`[${gradeGroup}] 暂不支持知识竞赛！`, "red");
       return;
     }
+
     await emulateExamination(
       papers.map((it) => it.answer),
       "#app > div > div.home-container > div > div > div.competiotion-exam-box-all > div.exam-box > div > div.exam_content_bottom_btn > button",
@@ -523,7 +532,26 @@ export async function taskCompetition(): Promise<void> {
       },
       "知识竞赛",
       20, // 最大题目数，竞赛只有 20 道题目，如果未定义并打开了 `自动下一题并提交` 会导致循环提示最后一题 80 次
-      3000 // 与下一题的间隔时间，单位毫秒，默认 3 秒
+      3000, // 与下一题的间隔时间，单位毫秒，默认 3 秒
+      async () => {
+        // 适配最新知识竞赛
+        const gradeGroupDialog = await waitForElementLoaded(
+          "#app > div > div.home-container > div > div > div.competiotion-exam-box-all > div.dialog-mask > div"
+        );
+        const options = nodeListToArray(
+          gradeGroupDialog.querySelectorAll(".option")
+        );
+        const filteredOptions = options.filter(
+          (it) => it.innerHTML === gradeGroup
+        );
+        const resultOption: HTMLElement = filteredOptions[0] as HTMLElement;
+        if (filteredOptions.length < 1 || isNone(resultOption)) {
+          showMessage(`[${gradeGroup}] 暂不支持知识竞赛！`, "red");
+          return;
+        } else {
+          resultOption.click();
+        }
+      }
     );
   } else {
     showMessage(`你的年级 [${gradeLevel}] 暂未支持知识竞赛！`, "red");
