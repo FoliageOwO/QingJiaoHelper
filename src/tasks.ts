@@ -467,3 +467,58 @@ export async function taskFinalExamination(): Promise<void> {
 export async function taskMultiComplete(): Promise<void> {
   // TODO
 }
+
+/**
+ * 此部分代码来自 `https://greasyfork.org/zh-CN/scripts/480897-qingjiaohelper`
+ * 修改版作者 Hmjz100，地址 `https://github.com/hmjz100`
+ */
+export async function taskCompetition(): Promise<void> {
+  const supportedCompetition = libs.supportedCompetition;
+  const gradeLevel = accountGradeLevel();
+  let gradeGroup;
+  const gradesPrimary = {
+    一年级: 1,
+    二年级: 2,
+    三年级: 3,
+    四年级: 4,
+    五年级: 5,
+    六年级: 6,
+  };
+  if (gradeLevel in gradesPrimary) {
+    gradeGroup = "小学组";
+  } else {
+    gradeGroup = "中学组";
+  }
+  if (supportedCompetition.hasOwnProperty(gradeGroup)) {
+    showMessage(`已自动选择 [${gradeGroup}] 知识竞赛题库`, "cornflowerblue");
+    const paperName = supportedCompetition[gradeGroup];
+    let papers = libs[paperName];
+    papers = papers.map((it) => {
+      return { question: it.question, answer: toAnswer(it.answer) };
+    });
+    if (!Array.isArray(papers)) {
+      showMessage(`[${gradeGroup}] 暂不支持知识竞赛！`, "red");
+      return;
+    }
+    await emulateExamination(
+      papers.map((it) => it.answer),
+      "#app > div > div.home-container > div > div > div.competiotion-exam-box-all > div.exam-box > div > div.exam_content_bottom_btn > button",
+      "#app > div > div.home-container > div > div > div.competiotion-exam-box-all > div.exam-box > div.competition-sub > button",
+      "#app > div > div.home-container > div > div > div.competiotion-exam-box-all > div.exam-box > div.competition-sub > button.ant-btn.ant-btn-primary",
+      (_, question) => {
+        const { answer, realQuestion } =
+          accurateFind(papers, question) || fuzzyFind(papers, question);
+        return {
+          answer,
+          matchedQuestion: realQuestion,
+        };
+      },
+      "知识竞赛",
+      20 /* 最大题目数，竞赛只有 20 道题目，如果未定义并打开了 `自动下一题并提交` 会导致循环提示最后一题 80 次 */
+    );
+  } else {
+    showMessage(`你的年级 [${gradeLevel}] 暂未支持知识竞赛！`, "red");
+    return;
+  }
+}
+

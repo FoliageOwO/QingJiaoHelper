@@ -16,7 +16,7 @@
   "supportURL": "https://github.com/FoliageOwO/QingJiaoHelper",
   "require": [
     "https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.js",
-    "https://greasyfork.org/scripts/453791-lib2class/code/lib2class.js?version=1452705",
+    "https://update.greasyfork.org/scripts/453791/1453377/lib2class.js",
     "https://cdn.jsdelivr.net/npm/axios@1.3.6/dist/axios.min.js"
   ],
   "resource": {
