@@ -338,6 +338,9 @@ export async function taskGetCredit(): Promise<void> {
     showMessage("你还没有登录！", "red");
     return;
   }
+
+  const length = 5;
+
   // 领取禁毒学子勋章
   const num = await addMedal();
   if (num !== undefined) {
@@ -345,6 +348,7 @@ export async function taskGetCredit(): Promise<void> {
   } else if (num === null) {
     showMessage("领取徽章失败！", "red");
   } else {
+    showMessage("无法领取徽章（可能已领取过），已跳过！", "yellow");
     console.warn("无法领取徽章（可能已领取过），已跳过！");
   }
 
@@ -381,6 +385,8 @@ export async function taskGetCredit(): Promise<void> {
     console.debug(`获取分类 ${category.name} 的资源`, resources);
 
     for (const resource of resources) {
+      if (done >= length) break;
+
       const resourceId = resource.resourceId;
       // 假播放
       // 新版青骄课堂改成了 `addPCPlayPV` 的 api，不再是 `sync`
@@ -411,7 +417,7 @@ export async function taskGetCredit(): Promise<void> {
     if (done !== 0) {
       if (done === beforeDone) {
         showMessage(
-          `成功完成 ${done}/${failed} 个资源，点赞 ${liked} 个！`,
+          `成功完成 ${done}/${done + failed} 个资源，点赞 ${liked} 个！`,
           "green"
         );
         // TODO 自动完成
@@ -524,4 +530,3 @@ export async function taskCompetition(): Promise<void> {
     return;
   }
 }
-
