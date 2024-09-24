@@ -2,7 +2,7 @@
   "name": "QingJiaoHelper",
   "namespace": "http://tampermonkey.net/",
   "version": "0.3.3",
-  "description": "青骄第二课堂小助手: 2024 | 跳过视频 | 自动完成所有课程 | 每日领取学分 | 课程自动填充答案",
+  "description": "青骄第二课堂小助手: 2024 | 跳过视频 | 自动完成所有课程 | 领取每日学分 | 课程自动填充答案",
   "author": "FoliageOwO",
   "match": ["*://www.2-class.com/*", "*://2-class.com/*"],
   "grant": [
