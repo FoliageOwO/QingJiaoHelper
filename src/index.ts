@@ -87,7 +87,7 @@ export const features: feature[] = [
   },
   {
     key: "skip",
-    title: "显示课程视频跳过按钮",
+    title: "跳过课程视频",
     matcher: /\/courses\/(\d+)/,
     task: taskSkip,
     enabled: () => true,

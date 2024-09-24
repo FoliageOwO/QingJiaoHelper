@@ -321,21 +321,31 @@ export async function taskSkip(): Promise<void> {
     return;
   }
   const courseId = location.pathname.match(/(\d+)/g)[0];
-  const span = await waitForElementLoaded(
-    "#app > div > div.home-container > div > div > div.course-title-box > div > a > span"
+  // const span = await waitForElementLoaded(
+  //   "#app > div > div.home-container > div > div > div.course-title-box > div > a > span"
+  // );
+  // span.style.display = "inline-flex";
+  // const skipButton = document.createElement("button");
+  // skipButton.type = "button";
+  // // 和青骄第二课堂的按钮用同样的样式
+  // skipButton.className = "ant-btn ant-btn-danger ant-btn-lg";
+  // const skipSpan = document.createElement("span");
+  // skipSpan.innerText = "跳过";
+  // skipButton.appendChild(skipSpan);
+  // skipButton.onclick = () => {
+  //   location.href = `/courses/exams/${courseId}`;
+  // };
+  // span.appendChild(skipButton);
+  const video: HTMLVideoElement = (await waitForElementLoaded(
+    "#app > div > div.home-container > div > div > div:nth-child(2) > div > div > div > div > div > video"
+  )) as HTMLVideoElement;
+  const videoControlButton: HTMLElement = await waitForElementLoaded(
+    "#app > div > div.home-container > div > div > div:nth-child(2) > div > div > div > div > div > .prism-controlbar > .prism-play-btn"
   );
-  span.style.display = "inline-flex";
-  const skipButton = document.createElement("button");
-  skipButton.type = "button";
-  // 和青骄第二课堂的按钮用同样的样式
-  skipButton.className = "ant-btn ant-btn-danger ant-btn-lg";
-  const skipSpan = document.createElement("span");
-  skipSpan.innerText = "跳过";
-  skipButton.appendChild(skipSpan);
-  skipButton.onclick = () => {
-    location.href = `/courses/exams/${courseId}`;
+  videoControlButton.onclick = () => {
+    const endTime = video.seekable.end(0);
+    video.currentTime = endTime;
   };
-  span.appendChild(skipButton);
 }
 
 /**
