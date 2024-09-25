@@ -38,10 +38,10 @@
 **注意：大部分功能默认都是关闭状态，你可以自定义开关对应功能（点击油猴脚本图标 → QingJiaoHelper → 菜单 → 功能名前的开关），关闭后将会无法激活**
 
 - ① 跳转到页面来激活对应功能
-  - https://www.2-class.com/courses - 自动完成所有选择年级的课程（不包括期末考试）（推荐和 `课程自动填充答案` 和 `自动下一题并提交` 配合使用）
+  - https://www.2-class.com/courses - 自动完成所有选择年级的课程（不包括期末考试）（推荐和 `自动开始作答、下一题和提交` 配合使用）
   - ~~https://www.2-class.com/selfCourse - 自动完成所有**自学**课程（不包括考试）~~（暂不支持全自动完成）
-  - https://www.2-class.com/admin/creditCenter - 自动获取所有可以获取的学分，包括 `心理减压`、`耕读学堂`、`校园安全` 等等
-  - https://www.2-class.com/courses/exams/finalExam - 期末考试（推荐和 `自动下一题并提交` 功能搭配使用）
+  - https://www.2-class.com/admin/creditCenter - 自动点赞资源来获取学分，包括 `心理减压`、`耕读学堂`、`校园安全` 等等，但只会点赞部分资源，只保证学分中心中 `领取禁毒学子勋章` 和 `完成任意两次点赞` 完成
+  - https://www.2-class.com/courses/exams/finalExam - 期末考试（无法保证全对，准确性取决于题库，推荐和 `自动下一题并提交` 功能搭配使用）（仅部分地区的期末考试可以免做，其他地区的期末考试由于缺少题库暂时没办法做）
   - https://www.2-class.com/competition - 知识竞赛（无法保证全对，准确性取决于题库，推荐和 `自动下一题并提交` 功能搭配使用）
 - ② 在菜单中一键完成
   - 点击油猴脚本图标 → QingJiaoHelper → 菜单 → 一键完成
