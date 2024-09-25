@@ -98,8 +98,8 @@ export async function waitForElementLoaded(
  * @param string 输入文本
  * @returns 删除空格后的文本
  */
-export function removeSpaces(string: string): string {
-  return string.replace(/\s*/g, "");
+export function removeSpaces(string: string | null): string | null {
+  return isNone(string) ? null : string.replace(/\s*/g, "");
 }
 
 /**
@@ -118,20 +118,6 @@ export function toDisplayAnswer(answer: string): string {
 }
 
 /**
- * 把显示友好答案转为通用答案
- * @param answers 显示友好答案，如 `ABC`
- * @returns 通用答案，如 `0,1,2`
- */
-export function toAnswer(answers: string): string {
-  const alphas = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-  let result = "";
-  for (const answer of answers) {
-    result = result + alphas.indexOf(answer);
-  }
-  return result;
-}
-
-/**
  * 把元素节点列表转换为元素数组
  * @param nodeList 元素节点列表
  * @returns 元素数组
@@ -141,17 +127,16 @@ export function nodeListToArray(nodeList: NodeList): Element[] {
 }
 
 /**
- * 把原年级名转为通用年级名
- * @param gradeLevel 原年级名，如 `八年级`
- * @returns 通用年级名，如 `初二`
+ * 把 HTML 元素集合转换为元素数组
+ * @param htmlCollection HTML 元素集合
+ * @returns 元素数组
  */
-export function converToGenericGradeLevel(gradeLevel: string): string {
-  const mapping = {
-    七年级: "初一",
-    八年级: "初二",
-    九年级: "初三",
-  };
-  return mapping[gradeLevel];
+export function htmlCollectionToArray<T extends Element>(
+  htmlCollection: HTMLCollectionOf<T>
+): T[] {
+  const result: T[] = [];
+  for (const element of htmlCollection) result.push(element);
+  return result;
 }
 
 /**
@@ -167,19 +152,45 @@ export function arrayDiff<T>(array1: T[], array2: T[]): T[] {
 }
 
 /**
+ * 判断两个字符串是否模糊相同
+ * @param a 第一个字符串
+ * @param b 第二个字符串
+ * @returns 相似度是否超过设定阈值和相似度
+ */
+export function fuzzyMatch(
+  a: string,
+  b: string
+): { matched: boolean; confidence: number } {
+  const aChars = a.split("");
+  const bChars = b.split("");
+  const diff = arrayDiff(aChars, bChars);
+  const diffLength = diff.length;
+  const unconfidence = diffLength / length;
+  return {
+    matched: 1 - unconfidence >= fuzzyFindConfidenceTreshold,
+    confidence: 1 - unconfidence,
+  };
+}
+
+/**
  * 在题库中精确匹配问题
  * @param papers 待查找的问题列表
  * @param question 网页显示的问题文本
- * @returns 匹配出来的答案和真正的问题文本，匹配不到会返回 `null`
+ * @returns 匹配出来的答案文本和真正的问题文本列表，匹配不到会返回 `null`
  */
 export function accurateFind(
   papers: { question: string; answer: string }[],
   question: string
-): { answer: string; realQuestion: string } | null {
-  const result = papers.find((it) => removeSpaces(it.question) === question);
-  if (!isNone(result)) {
-    console.debug(`精确匹配问题：${question} → ${result.question}`);
-    return { answer: result.answer, realQuestion: question };
+): [{ answer: string; realQuestion: string }[], n: number] | null {
+  const results = papers.filter((it) => removeSpaces(it.question) === question);
+  if (results.length > 0) {
+    console.debug(`精确匹配问题：${question} → ${question}`);
+    return [
+      results.map((it) => {
+        return { answer: it.answer, realQuestion: it.question };
+      }),
+      results.length,
+    ];
   } else {
     return null;
   }
@@ -189,12 +200,12 @@ export function accurateFind(
  * 在题库中模糊匹配问题
  * @param papers 待查找的问题列表
  * @param question 网页显示的问题文本
- * @returns 匹配出来的答案和真正的问题文本，如果未找到高度匹配的结果返回 `null`
+ * @returns 匹配出来的答案文本和真正的问题文本列表，如果未找到高度匹配的结果返回 `null`
  */
 export function fuzzyFind(
   papers: { question: string; answer: string }[],
   question: string
-): { answer: string; realQuestion: string } | null {
+): [{ answer: string; realQuestion: string }[], n: number] | null {
   // 先把问题文本转为字符列表
   const chars = question.split("");
   // 取它的长度（即文本的长度）
@@ -203,53 +214,45 @@ export function fuzzyFind(
   const percentages: {
     question: string;
     answer: string;
-    unconfidence: number;
+    confidence: number;
   }[] = [];
 
   for (const paper of papers) {
     // 把题库中的问题文本转为字符列表
     const questionChars = paper.question.split("");
     // 比较原文本和题库的题，并拿到不重复的部分
-    const diff = arrayDiff(chars, questionChars);
-    // 取它的长度（即和当前问题文本不匹配的字符数量）
-    const diffLength = diff.length;
-    // 将不匹配的字符数量与原文本字符数量相除，得到不匹配度
-    const percentage = diffLength / length;
-    percentages.push({
-      question: paper.question,
-      answer: paper.answer,
-      unconfidence: percentage,
-    });
+    const { matched, confidence } = fuzzyMatch(question, paper.question);
+    if (matched) {
+      percentages.push({
+        question: paper.question,
+        answer: paper.answer,
+        confidence,
+      });
+    }
   }
 
   // 通过排序，获得不匹配度最低的（即匹配度最高的）
-  const theMostConfident = percentages
-    .filter(
-      (it) =>
-        it.unconfidence < 1 &&
-        1 - it.unconfidence >= fuzzyFindConfidenceTreshold
-    )
-    .sort((a, b) => a.unconfidence - b.unconfidence)[0];
+  const theMostConfidents = percentages
+    .filter((it) => it.confidence > 0)
+    .sort((a, b) => a.confidence - b.confidence);
 
-  if (isNone(theMostConfident)) {
-    console.error(`未找到高度匹配的问题：${question}`);
-    showMessage(
-      `未找到此题的答案，请手动回答，或等待题库更新：${question}`,
-      "red"
-    );
+  if (theMostConfidents.length <= 0) {
+    console.error(`模糊匹配未找到高度匹配的结果：${question}`);
     return null;
   }
 
   // 获得匹配度最高的问题的问题文本和答案，返回
-  const theMostConfidentQuestion = theMostConfident.question;
-  const confidence = 1 - theMostConfident.unconfidence;
   console.debug(
-    `模糊匹配问题（${confidence}）：${question} → ${theMostConfidentQuestion}`
+    `模糊匹配问题：${question} → ${theMostConfidents
+      .map((it) => `（${it.confidence}）${it.question}`)
+      .join("||")}`
   );
-  return {
-    answer: theMostConfident.answer,
-    realQuestion: theMostConfidentQuestion,
-  };
+  return [
+    theMostConfidents.map((it) => {
+      return { answer: it.answer, realQuestion: it.question };
+    }),
+    theMostConfidents.length,
+  ];
 }
 /**
  * 插入值到HTML输入元素

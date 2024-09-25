@@ -23,10 +23,11 @@ import {
   isNone,
   removeSpaces,
   showMessage,
-  toDisplayAnswer,
   waitForElementLoaded,
-  toAnswer,
   nodeListToArray,
+  htmlCollectionToArray,
+  fuzzyMatch,
+  toDisplayAnswer,
 } from "./utils";
 
 /// imports end
@@ -153,6 +154,7 @@ export async function taskSingleCourse(): Promise<void> {
     (answers, _) => {
       const firstAnswer: string = answers.shift().toString();
       return {
+        type: "index",
         answer: firstAnswer,
         matchedQuestion: null,
       };
@@ -205,6 +207,7 @@ export async function emulateExamination(
     answers: string[],
     question: string
   ) => {
+    type: "index" | "text";
     answer: string | null;
     matchedQuestion: string | null;
   },
@@ -249,33 +252,59 @@ export async function emulateExamination(
           setTimeout(async () => await next(nextAnswers, nextSecButton), 0);
         };
 
-        let { answer, matchedQuestion } = answerHandler(answers, questionText);
+        let { type, answer, matchedQuestion } = answerHandler(
+          answers,
+          questionText
+        );
         if (isNone(answer)) {
+          showMessage(
+            `未找到此题的答案，请手动回答，或等待题库更新：${questionText}`,
+            "red"
+          );
           count++;
           return;
         } else {
-          const selections = document.getElementsByClassName(
-            "exam-single-content-box"
-          );
+          const selections: HTMLCollectionOf<HTMLElement> =
+            document.getElementsByClassName(
+              "exam-single-content-box"
+            ) as HTMLCollectionOf<HTMLElement>;
           console.debug("选择", answer, selections);
 
-          const displayAnswer = toDisplayAnswer(answer);
           // 获取最终的问题文本
           const finalQuestion = matchedQuestion || questionText;
           if (!isFullAutomaticEmulationEnabled()) {
             showMessage(
               `${finalQuestion ? finalQuestion + "\n" : ""}第 ${
                 count + 1
-              } 题答案：${displayAnswer}`,
+              } 题答案：${type === "index" ? toDisplayAnswer(answer) : answer}`,
               "green"
             );
           }
 
           // 自动选择答案
-          for (const answerIndex of answer.split(",").map((it) => Number(it))) {
-            const selectionElement = selections[answerIndex] as HTMLElement;
-            // 模拟点击
-            selectionElement.click();
+          if (type === "text") {
+            for (let answerText of answer.split("||")) {
+              answerText = removeSpaces(answerText);
+              const selectionElements = htmlCollectionToArray(
+                selections
+              ).filter((it) => {
+                const match = it.innerText.match(/^([A-Z])([.。,，、．])(.*)/);
+                const answerContent = removeSpaces(match[1 + 2]);
+                return (
+                  !isNone(answerContent) &&
+                  (answerContent === answerText ||
+                    fuzzyMatch(answerContent, answerText).matched)
+                );
+              });
+              selectionElements.map((it) => it.click());
+            }
+          } else {
+            for (const answerIndex of answer
+              .split(",")
+              .map((it) => Number(it))) {
+              const selectionElement = selections[answerIndex] as HTMLElement;
+              selectionElement.click();
+            }
           }
 
           // 如果是全自动，会自动点击下一题的按钮
@@ -455,22 +484,19 @@ export async function taskFinalExamination(): Promise<void> {
       answer: string;
     }[] = libs[paperName];
 
-    papers = papers.map((it) => {
-      // it.answer -> ABC
-      return { question: it.question, answer: toAnswer(it.answer) };
-    });
-
     await emulateExamination(
       papers.map((it) => it.answer),
       "#app > div > div.home-container > div > div > div > div:nth-child(1) > div > button",
       "#app > div > div.home-container > div > div > div > div:nth-child(1) > div > div.exam-content-btnbox > button",
       "#app > div > div.home-container > div > div > div > div:nth-child(1) > div > div.exam-content-btnbox > div > button:nth-child(2)",
       (_, question) => {
-        const { answer, realQuestion } = accurateFind(papers, question) ||
-          fuzzyFind(papers, question) || { answer: null, realQuestion: null };
+        const [answerList, n] = accurateFind(papers, question) ||
+          fuzzyFind(papers, question) || [[], 0];
         return {
-          answer,
-          matchedQuestion: realQuestion,
+          type: "text",
+          answer: n > 0 ? answerList.map((it) => it.answer).join("||") : null,
+          matchedQuestion:
+            n > 0 ? answerList.map((it) => it.realQuestion).join("||") : null,
         };
       },
       "期末考试",
@@ -513,10 +539,7 @@ export async function taskCompetition(): Promise<void> {
     showMessage(`已自动选择 [${gradeGroup}] 知识竞赛题库`, "cornflowerblue");
 
     const paperName = supportedCompetition[gradeGroup];
-    let papers = libs[paperName];
-    papers = papers.map((it) => {
-      return { question: it.question, answer: toAnswer(it.answer) };
-    });
+    const papers = libs[paperName];
 
     if (!Array.isArray(papers)) {
       showMessage(`[${gradeGroup}] 暂不支持知识竞赛！`, "red");
@@ -529,11 +552,13 @@ export async function taskCompetition(): Promise<void> {
       "#app > div > div.home-container > div > div > div.competiotion-exam-box-all > div.exam-box > div.competition-sub > button",
       "#app > div > div.home-container > div > div > div.competiotion-exam-box-all > div.exam-box > div.competition-sub > button.ant-btn.ant-btn-primary",
       (_, question) => {
-        const { answer, realQuestion } = accurateFind(papers, question) ||
-          fuzzyFind(papers, question) || { answer: null, realQuestion: null };
+        const [answerList, n] = accurateFind(papers, question) ||
+          fuzzyFind(papers, question) || [[], 0];
         return {
-          answer,
-          matchedQuestion: realQuestion,
+          type: "text",
+          answer: n > 0 ? answerList.map((it) => it.answer).join("||") : null,
+          matchedQuestion:
+            n > 0 ? answerList.map((it) => it.realQuestion).join("||") : null,
         };
       },
       "知识竞赛",
