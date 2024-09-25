@@ -205,12 +205,12 @@ export async function emulateExamination(
     answers: string[],
     question: string
   ) => {
-    answer: string;
+    answer: string | null;
     matchedQuestion: string | null;
   },
   examinationName: string,
   size = 100,
-  interval = 50,
+  interval = 3000,
   afterStart: () => Promise<void> = async () => {}
 ): Promise<void> {
   // TODO 这个函数有些过于复杂了，之后有时间看看能不能简化并剥离出来
@@ -226,73 +226,65 @@ export async function emulateExamination(
     nextAnswers: string[],
     nextButton: HTMLElement = null
   ) => {
-    // 获取问题元素
     const questionElement = await waitForElementLoaded(
       ".exam-content-question"
     );
-    // 获取问题文本
-    const questionText = removeSpaces(
-      questionElement.innerText.split("\n")[0] // 获取第一行（题目都是在第一行）
-    );
-    // 如果考试还未开始，先等 `初下一题` 按钮加载完成，并重新传回此函数开始考试
+    const questionText = removeSpaces(questionElement.innerText.split("\n")[0]);
+
     if (!isExaminationStarted) {
-      const _firstNextButton = await waitForElementLoaded(
+      const primaryNextButton = await waitForElementLoaded(
         primaryNextButtonSelector
       );
       isExaminationStarted = true;
-      await next(nextAnswers, _firstNextButton);
+      await next(nextAnswers, primaryNextButton);
     } else {
-      // 如果已经开始过，那么 `count` 必定大于 0
-      // 此时，会把下一步按钮从 `初下一题` 按钮更换为 `次下一题` 按钮
+      let nextSecButton = nextButton;
+
       if (count > 0) {
-        nextButton = document.querySelector(secondaryNextButtonSelector);
+        nextSecButton = await waitForElementLoaded(secondaryNextButtonSelector);
       }
 
-      // 根据题量大小 `size` 开始答题
       if (!isNone(size) && count < size) {
-        // 用户点击 `下一步` 按钮会继续触发本函数，传入下一题的答案和下一题的按钮
-        // * 延时根据 `interval` 参数决定
-        nextButton.onclick = () => {
-          setTimeout(
-            () => next(nextAnswers, nextButton),
-            isFullAutomaticEmulationEnabled() ? interval : 0
-          );
-          return;
+        nextSecButton.onclick = async () => {
+          setTimeout(async () => await next(nextAnswers, nextSecButton), 0);
         };
 
-        // answer -> 1,2,3
-        // `matchedQuestion` 为在题库匹配到的问题，可以是模糊匹配，也可以是精确匹配
         let { answer, matchedQuestion } = answerHandler(answers, questionText);
-        // 获取选择框元素，有很多个
-        const selections = document.getElementsByClassName(
-          "exam-single-content-box"
-        );
-        console.debug("选择", answer, selections);
-        const displayAnswer = toDisplayAnswer(answer);
-        // 获取最终的问题文本
-        const finalQuestion = matchedQuestion || questionText;
-        if (!isFullAutomaticEmulationEnabled()) {
-          showMessage(
-            `${finalQuestion ? finalQuestion + "\n" : ""}第 ${
-              count + 1
-            } 题答案：${displayAnswer}`,
-            "green"
+        if (isNone(answer)) {
+          count++;
+          return;
+        } else {
+          const selections = document.getElementsByClassName(
+            "exam-single-content-box"
           );
-        }
+          console.debug("选择", answer, selections);
 
-        // 自动选择答案
-        for (const answerIndex of answer.split(",").map((it) => Number(it))) {
-          const selectionElement = selections[answerIndex] as HTMLElement;
-          // 模拟点击
-          selectionElement.click();
-        }
+          const displayAnswer = toDisplayAnswer(answer);
+          // 获取最终的问题文本
+          const finalQuestion = matchedQuestion || questionText;
+          if (!isFullAutomaticEmulationEnabled()) {
+            showMessage(
+              `${finalQuestion ? finalQuestion + "\n" : ""}第 ${
+                count + 1
+              } 题答案：${displayAnswer}`,
+              "green"
+            );
+          }
 
-        // 如果是全自动，会自动点击下一题的按钮
-        if (isFullAutomaticEmulationEnabled()) {
-          nextButton.click();
-        }
+          // 自动选择答案
+          for (const answerIndex of answer.split(",").map((it) => Number(it))) {
+            const selectionElement = selections[answerIndex] as HTMLElement;
+            // 模拟点击
+            selectionElement.click();
+          }
 
-        count++;
+          // 如果是全自动，会自动点击下一题的按钮
+          if (isFullAutomaticEmulationEnabled()) {
+            setTimeout(() => nextButton.click(), interval);
+          }
+
+          count++;
+        }
       }
     }
   };
@@ -302,7 +294,7 @@ export async function emulateExamination(
     showMessage(`自动开始 ${examinationName}！`, "blue");
     startButton.click();
     await afterStart();
-    setTimeout(() => next(answers, null), interval);
+    next(answers, null);
   } else {
     startButton.onclick = async () => {
       showMessage(`开始 ${examinationName}！`, "blue");
@@ -470,19 +462,20 @@ export async function taskFinalExamination(): Promise<void> {
 
     await emulateExamination(
       papers.map((it) => it.answer),
-      "#app > div > div.home-container > div > div > div > div > div > button",
-      "#app > div > div.home-container > div > div > div > div > div > div.exam-content-btnbox > button",
-      "#app > div > div.home-container > div > div > div > div > div > div.exam-content-btnbox > div > button.ant-btn.ant-btn-primary",
+      "#app > div > div.home-container > div > div > div > div:nth-child(1) > div > button",
+      "#app > div > div.home-container > div > div > div > div:nth-child(1) > div > div.exam-content-btnbox > button",
+      "#app > div > div.home-container > div > div > div > div:nth-child(1) > div > div.exam-content-btnbox > div > button:nth-child(2)",
       (_, question) => {
-        const { answer, realQuestion } =
-          accurateFind(papers, question) || fuzzyFind(papers, question);
+        const { answer, realQuestion } = accurateFind(papers, question) ||
+          fuzzyFind(papers, question) || { answer: null, realQuestion: null };
         return {
           answer,
           matchedQuestion: realQuestion,
         };
       },
       "期末考试",
-      10 // TODO 这个 10 是干什么的我还没搞清楚，之后再说
+      10, // 一共 10 道题
+      3000 // 默认题目间隔 3s
     );
   } else {
     showMessage(`你的年级 [${gradeLevel}] 暂未支持期末考试！`, "red");
@@ -536,8 +529,8 @@ export async function taskCompetition(): Promise<void> {
       "#app > div > div.home-container > div > div > div.competiotion-exam-box-all > div.exam-box > div.competition-sub > button",
       "#app > div > div.home-container > div > div > div.competiotion-exam-box-all > div.exam-box > div.competition-sub > button.ant-btn.ant-btn-primary",
       (_, question) => {
-        const { answer, realQuestion } =
-          accurateFind(papers, question) || fuzzyFind(papers, question);
+        const { answer, realQuestion } = accurateFind(papers, question) ||
+          fuzzyFind(papers, question) || { answer: null, realQuestion: null };
         return {
           answer,
           matchedQuestion: realQuestion,

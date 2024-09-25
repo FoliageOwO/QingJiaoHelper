@@ -1,6 +1,11 @@
 import Toastify from "toastify-js";
 
-import { toastifyDuration, toastifyGravity, toastifyPosition } from "./consts";
+import {
+  toastifyDuration,
+  toastifyGravity,
+  toastifyPosition,
+  fuzzyFindConfidenceTreshold,
+} from "./consts";
 
 /// imports end
 
@@ -184,12 +189,12 @@ export function accurateFind(
  * 在题库中模糊匹配问题
  * @param papers 待查找的问题列表
  * @param question 网页显示的问题文本
- * @returns 匹配出来的答案和真正的问题文本
+ * @returns 匹配出来的答案和真正的问题文本，如果未找到高度匹配的结果返回 `null`
  */
 export function fuzzyFind(
   papers: { question: string; answer: string }[],
   question: string
-): { answer: string; realQuestion: string } {
+): { answer: string; realQuestion: string } | null {
   // 先把问题文本转为字符列表
   const chars = question.split("");
   // 取它的长度（即文本的长度）
@@ -218,9 +223,23 @@ export function fuzzyFind(
   }
 
   // 通过排序，获得不匹配度最低的（即匹配度最高的）
-  const theMostConfident = percentages.sort(
-    (a, b) => a.unconfidence - b.unconfidence
-  )[0];
+  const theMostConfident = percentages
+    .filter(
+      (it) =>
+        it.unconfidence < 1 &&
+        1 - it.unconfidence >= fuzzyFindConfidenceTreshold
+    )
+    .sort((a, b) => a.unconfidence - b.unconfidence)[0];
+
+  if (isNone(theMostConfident)) {
+    console.error(`未找到高度匹配的问题：${question}`);
+    showMessage(
+      `未找到此题的答案，请手动回答，或等待题库更新：${question}`,
+      "red"
+    );
+    return null;
+  }
+
   // 获得匹配度最高的问题的问题文本和答案，返回
   const theMostConfidentQuestion = theMostConfident.question;
   const confidence = 1 - theMostConfident.unconfidence;
