@@ -160,7 +160,8 @@ export async function taskSingleCourse(): Promise<void> {
       };
     },
     `答题 [${courseId}]`,
-    answers.length
+    answers.length,
+    50
   );
   const passText = await waitForElementLoaded(
     "#app > div > div.home-container > div > div > div > div.exam-box > div > div > p.exam-pass-title"
