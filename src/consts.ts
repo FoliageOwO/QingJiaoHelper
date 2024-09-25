@@ -4,7 +4,7 @@ import { getAvailableGradeLevels } from "./api";
 
 /* ------------ 脚本定义 ------------ */
 export const scriptName = "QingJiaoHelper";
-export const scriptVersion = "v0.3.4";
+export const scriptVersion = "v0.3.5";
 export const toastifyDuration = 3 * 1000;
 export const toastifyGravity = "top";
 export const toastifyPosition = "left";
