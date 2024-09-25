@@ -148,9 +148,9 @@ export async function taskSingleCourse(): Promise<void> {
   const answers = await getCourseAnswers(courseId);
   await emulateExamination(
     answers,
-    "#app > div > div.home-container > div > div > div > div > div > button",
-    "#app > div > div.home-container > div > div > div > div > div > div.exam-content-btnbox > button",
-    "#app > div > div.home-container > div > div > div > div > div > div.exam-content-btnbox > div > button.ant-btn-primary",
+    "#app > div > div.home-container > div > div > div > div:nth-child(1) > div > button",
+    "#app > div > div.home-container > div > div > div > div:nth-child(1) > div > div.exam-content-btnbox > button",
+    "#app > div > div.home-container > div > div > div > div:nth-child(1) > div > div.exam-content-btnbox > div > button:nth-child(2)",
     (answers, _) => {
       const firstAnswer: string = answers.shift().toString();
       return {
@@ -302,6 +302,7 @@ export async function emulateExamination(
           } else {
             for (const answerIndex of answer
               .split(",")
+              .filter((it) => it !== "")
               .map((it) => Number(it))) {
               const selectionElement = selections[answerIndex] as HTMLElement;
               selectionElement.click();
@@ -310,7 +311,7 @@ export async function emulateExamination(
 
           // 如果是全自动，会自动点击下一题的按钮
           if (isFullAutomaticEmulationEnabled()) {
-            setTimeout(() => nextButton.click(), interval);
+            setTimeout(() => nextSecButton.click(), interval);
           }
 
           count++;
