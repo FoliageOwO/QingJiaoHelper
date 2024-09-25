@@ -10,6 +10,10 @@
 
 由于学业只能随缘更新，若有能力请提 `Pull Request`。
 
+## 赞赏
+
+赞赏二维码见 [Github 主页](https://github.com/FoliageOwO)，赞赏列表见 [FUNDERS.md](FUNDERS.md)。
+
 ## 构建
 
 > [!NOTE]
@@ -42,5 +46,5 @@ $ npm run gen
 
 - [toastify-js](https://github.com/apvarun/toastify-js) - Pure JavaScript library for better notification messages - MIT
 - [axios](https://github.com/axios/axios) - Promise based HTTP client for the browser and node.js - MIT
-- [spectre](https://github.com/picturepan2/spectre) - A Lightweight, Responsive and Modern CSS Framework（经修改） - MIT
+- [spectre](https://github.com/picturepan2/spectre) - A Lightweight, Responsive and Modern CSS Framework（经修改，修改后的版本在本脚本仓库下） - MIT
 

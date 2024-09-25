@@ -23,10 +23,10 @@
 
 ## 支持与反馈
 
-**如果觉得此脚本帮到了你，欢迎在 `Github` 上为我点颗星星，或者在 [我的 Github 主页](https://github.com/FoliageOwO) 中的赞赏码来赞助我，谢谢！**
+**如果觉得此脚本帮到了你，欢迎在 `Github` 上为我点颗星星，或者在 [我的 Github 主页](https://github.com/FoliageOwO) 中的赞赏码来赞助我，谢谢！
 
 - [Github 仓库](https://github.com/FoliageOwO/QingJiaoHelper/)
-- [捐赠列表](https://github.com/FoliageOwO/QingJiaoHelper/blob/master/FUNDERS.md)
+- [赞赏列表](https://github.com/FoliageOwO/QingJiaoHelper/blob/master/FUNDERS.md)
 
 ## 使用方法
 
