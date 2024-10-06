@@ -8,7 +8,7 @@ export const scriptVersion = "v0.3.5.1";
 export const toastifyDuration = 3 * 1000;
 export const toastifyGravity = "top";
 export const toastifyPosition = "left";
-export const fuzzyFindConfidenceTreshold = 0.9;
+export const fuzzyFindConfidenceTreshold = 0.8;
 
 /* ------------ 青骄第二课堂数据 ------------ */
 // 这几个都需要懒加载

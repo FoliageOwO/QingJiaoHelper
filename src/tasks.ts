@@ -21,7 +21,7 @@ import {
   accurateFind,
   fuzzyFind,
   isNone,
-  removeSpaces,
+  removeStuffs,
   showMessage,
   waitForElementLoaded,
   nodeListToArray,
@@ -233,7 +233,7 @@ export async function emulateExamination(
     const questionElement = await waitForElementLoaded(
       ".exam-content-question"
     );
-    const questionText = removeSpaces(questionElement.innerText.split("\n")[0]);
+    const questionText = removeStuffs(questionElement.innerText.split("\n")[0]);
 
     if (!isExaminationStarted) {
       const primaryNextButton = await waitForElementLoaded(
@@ -285,12 +285,12 @@ export async function emulateExamination(
           // 自动选择答案
           if (type === "text") {
             for (let answerText of answer.split("||")) {
-              answerText = removeSpaces(answerText);
+              answerText = removeStuffs(answerText);
               const selectionElements = htmlCollectionToArray(
                 selections
               ).filter((it) => {
                 const match = it.innerText.match(/^([A-Z])([.。,，、．])(.*)/);
-                const answerContent = removeSpaces(match[1 + 2]);
+                const answerContent = removeStuffs(match[1 + 2]);
                 return (
                   !isNone(answerContent) &&
                   (answerContent === answerText ||

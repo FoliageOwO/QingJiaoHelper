@@ -94,12 +94,16 @@ export async function waitForElementLoaded(
 }
 
 /**
- * 删除文本里的所有空格
+ * 删除文本里的所有空格和标点
  * @param string 输入文本
- * @returns 删除空格后的文本
+ * @returns 删除空格合标点后的文本
  */
-export function removeSpaces(string: string | null): string | null {
-  return isNone(string) ? null : string.replace(/\s*/g, "");
+export function removeStuffs(string: string | null): string | null {
+  return isNone(string)
+    ? null
+    : string
+        .replace(/\s*/g, "")
+        .replace(/[，。？！；：—【】（）,.?!;:-\[\]\(\)]/g, "");
 }
 
 /**
@@ -163,6 +167,7 @@ export function fuzzyMatch(
 ): { matched: boolean; confidence: number } {
   const aChars = a.split("");
   const bChars = b.split("");
+  const length = aChars.length > bChars.length ? aChars.length : bChars.length;
   const diff = arrayDiff(aChars, bChars);
   const diffLength = diff.length;
   const unconfidence = diffLength / length;
@@ -182,7 +187,9 @@ export function accurateFind(
   papers: { question: string; answer: string }[],
   question: string
 ): [{ answer: string; realQuestion: string }[], n: number] | null {
-  const results = papers.filter((it) => removeSpaces(it.question) === question);
+  const results = papers.filter(
+    (it) => removeStuffs(it.question) === removeStuffs(question)
+  );
   if (results.length > 0) {
     console.debug(`精确匹配问题：${question} → ${question}`);
     return [
@@ -218,9 +225,6 @@ export function fuzzyFind(
   }[] = [];
 
   for (const paper of papers) {
-    // 把题库中的问题文本转为字符列表
-    const questionChars = paper.question.split("");
-    // 比较原文本和题库的题，并拿到不重复的部分
     const { matched, confidence } = fuzzyMatch(question, paper.question);
     if (matched) {
       percentages.push({
