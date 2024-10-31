@@ -72,8 +72,7 @@
 
 图示教程：
 
-![](resources/clearcache.png)
-
+![](https://cdn.jsdelivr.net/gh/FoliageOwO/QingJiaoHelper@0.3.5.2/resources/clearcache.png)
 
 - **脚本出问题不工作了怎么办**
 
