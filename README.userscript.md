@@ -78,6 +78,7 @@
 - [飞小 RAN](https://github.com/xiaofeiTM233) - 提供账号测试
 - [hmjz100](https://github.com/hmjz100) - 提供知识竞赛代码实现
 - Tzimorotas - 提供账号测试、2023 年五年级到高二期末考试题库、2024 年小学和中学知识竞赛题库
+- forlxh - 提供 2024 六年级、初一、初二、高一、高二、中职一、中职二期末考试题库
 
 ## 版权
 
