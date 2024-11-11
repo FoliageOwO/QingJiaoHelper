@@ -1,7 +1,7 @@
 {
   "name": "QingJiaoHelper",
   "namespace": "http://tampermonkey.net/",
-  "version": "0.3.5.2",
+  "version": "0.3.5.3",
   "description": "青骄第二课堂小助手: 2024 知识竞赛 | 跳过视频 | 自动完成所有课程 | 领取每日学分 | 课程自动填充答案",
   "author": "FoliageOwO",
   "match": ["*://www.2-class.com/*", "*://2-class.com/*"],
@@ -15,12 +15,12 @@
   "license": "GPL-3.0",
   "supportURL": "https://github.com/FoliageOwO/QingJiaoHelper",
   "require": [
-    "https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.js",
+    "https://fastly.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.js",
     "https://update.greasyfork.org/scripts/453791/lib2class.js",
-    "https://cdn.jsdelivr.net/npm/axios@1.3.6/dist/axios.min.js"
+    "https://fastly.jsdelivr.net/npm/axios@1.3.6/dist/axios.min.js"
   ],
   "resource": {
-    "toastifycss": "https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.css",
-    "spectrecss": "https://cdn.jsdelivr.net/gh/FoliageOwO/QingJiaoHelper/spectre.css"
+    "toastifycss": "https://fastly.jsdelivr.net/npm/toastify-js/src/toastify.css",
+    "spectrecss": "https://fastly.jsdelivr.net/gh/FoliageOwO/QingJiaoHelper/spectre.css"
   }
 }
